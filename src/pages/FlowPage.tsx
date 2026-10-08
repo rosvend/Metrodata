@@ -1,5 +1,6 @@
 import { AnimatePresence } from "motion/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
 import { pageByPath } from "../app/pages";
 import { useCurrentTheme } from "../app/themeContext";
 import { useFilters } from "../app/useFilters";
@@ -15,13 +16,12 @@ import { PlaybackBar } from "../flow/PlaybackBar";
 import { Tooltip } from "../flow/Tooltip";
 import { usePlayback } from "../flow/usePlayback";
 import { DAY_TYPE_LABELS, DAY_TYPE_SINGULAR, YEAR_COVERAGE } from "../lib/filters";
+import { parseFlowView, setParam } from "../lib/viewParams";
 import { InfoTip } from "../ui/InfoTip";
 import { PageHeader } from "../ui/PageHeader";
 import { ErrorState, Loading } from "../ui/Status";
 
 const PAGE = pageByPath("/");
-// Opens on the system's weekday peak hour (17:00) so the first view shows the busiest network
-const START_HOUR = 17;
 
 const METRIC_SENTENCE: Record<Metric, string> = {
   boardings: "boardings per hour",
@@ -39,11 +39,22 @@ export function FlowPage() {
   const context = useContextLayers();
   const [showFeeders, setShowFeeders] = useState(false);
   const feeders = useJson<FeedersGeo>(showFeeders ? "feeders.geojson" : null);
-  const [metric, setMetric] = useState<Metric>("boardings");
-  const [selected, setSelected] = useState<string | null>(null);
+  const [params, setParams] = useSearchParams();
+  const view = parseFlowView(params);
+  const metric = view.metric;
+  const selected = view.line;
+  const setMetric = (m: Metric) =>
+    setParams((p) => setParam(p, "metric", m === "boardings" ? null : m), { replace: true });
+  const setSelected = (id: string | null) => setParams((p) => setParam(p, "line", id), { replace: true });
   const [hover, setHover] = useState<Hover | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
-  const playback = usePlayback(START_HOUR);
+  const playback = usePlayback(view.hour);
+  const { setT, setPlaying } = playback;
+  // A link (or the demo) can set the hour and start playback
+  useEffect(() => {
+    setT(view.hour);
+    setPlaying(view.play);
+  }, [view.hour, view.play, setT, setPlaying]);
 
   const model = useMemo(
     () =>

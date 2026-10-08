@@ -25,6 +25,7 @@ import { useJson } from "../data/useJson";
 import { BaseMap } from "../map/BaseMap";
 import { useContextLayers } from "../map/context";
 import { type FlyTarget, overlayPadding } from "../map/view";
+import { parseAccessView, setParam } from "../lib/viewParams";
 import { InfoTip } from "../ui/InfoTip";
 import { PageHeader } from "../ui/PageHeader";
 import { Segmented } from "../ui/Segmented";
@@ -55,9 +56,12 @@ export function AccessPage() {
   const stats = useJson<IsochroneStats>("isochrone_stats.json");
   const summary = useJson<AccessSummary>("access.json");
   const context = useContextLayers();
-  const [mode, setMode] = useState<Mode>("station");
-  const [filter, setFilter] = useState<AccessFilter>("all");
-  const [showOverlap, setShowOverlap] = useState(false);
+  const view = parseAccessView(params);
+  const { mode, filter, overlap: showOverlap } = view;
+  const setView = (key: string, value: string | null) => setParams((p) => setParam(p, key, value), { replace: true });
+  const setMode = (m: Mode) => setView("mode", m === "station" ? null : m);
+  const setFilter = (f: AccessFilter) => setView("filter", f === "all" ? null : f);
+  const setShowOverlap = (on: boolean) => setView("overlap", on ? "1" : null);
   const [point, setPoint] = useState<LonLat | null>(null);
   const [barrio, setBarrio] = useState<string | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
@@ -74,14 +78,14 @@ export function AccessPage() {
     });
   const grow = useGrow(mode === "station" ? stationId : null);
 
+  const stationsData = stations.status === "ready" ? stations.data : null;
   const tipo1 = useMemo(
-    () => (stations.status === "ready" ? stations.data.features.filter((f) => f.properties.tipo === 1) : []),
-    [stations],
+    () => (stationsData ? stationsData.features.filter((f) => f.properties.tipo === 1) : []),
+    [stationsData],
   );
-  const allowed = useMemo(
-    () =>
-      new Set(tipo1.filter((f) => filter === "all" || f.properties.modes.includes(filter)).map((f) => f.properties.id)),
-    [tipo1, filter],
+  // 50 stations: cheap to rebuild each render
+  const allowed = new Set(
+    tipo1.filter((f) => filter === "all" || f.properties.modes.includes(filter)).map((f) => f.properties.id),
   );
   const names = useMemo(() => new Map(tipo1.map((f) => [f.properties.id, f.properties.name])), [tipo1]);
   const selected = tipo1.find((f) => f.properties.id === stationId) ?? null;

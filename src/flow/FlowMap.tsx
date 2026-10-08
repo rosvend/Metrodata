@@ -4,7 +4,7 @@ import type { Theme } from "../lib/theme";
 import { BaseMap } from "../map/BaseMap";
 import { type Bounds, overlayPadding } from "../map/view";
 import type { ContextData } from "../map/context";
-import { type HoverTarget, buildLayers } from "./layers";
+import { type HoverTarget, buildLayers, lineLabelLayer } from "./layers";
 import type { Metric } from "./metrics";
 import type { FlowLine } from "./model";
 
@@ -52,7 +52,11 @@ export function FlowMap(props: Props) {
     onHover(target ? { target, ...at } : null);
   };
 
-  const layers = buildLayers({ ...props, focus: hoverLine ?? props.selected, onHover: handleHover, onClick: onSelect });
+  const labels = useMemo(() => lineLabelLayer(flow), [flow]);
+  const layers = [
+    ...buildLayers({ ...props, focus: hoverLine ?? props.selected, onHover: handleHover, onClick: onSelect }),
+    labels,
+  ];
 
   return (
     <BaseMap

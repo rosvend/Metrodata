@@ -40,7 +40,7 @@ export function DayDetail({ date, spikes, profiles, theme }: Props) {
         </div>
         <div className="text-right">
           <div
-            className={`text-[22px] font-bold tabular-nums ${value === null || value === undefined ? "text-ink-muted" : value < 0 ? "text-alert" : "text-accent"}`}
+            className={`text-[22px] font-bold tabular-nums ${value === null || value === undefined ? "text-ink-muted" : value < 0 ? "text-alert" : "text-spike"}`}
           >
             {value === null || value === undefined ? "n/a" : signed(value)}
           </div>

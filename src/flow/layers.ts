@@ -1,12 +1,13 @@
 import type { Layer } from "@deck.gl/core";
 import { PathStyleExtension, type PathStyleExtensionProps } from "@deck.gl/extensions";
-import { PathLayer, ScatterplotLayer } from "@deck.gl/layers";
+import { PathLayer, ScatterplotLayer, TextLayer } from "@deck.gl/layers";
 import type { Feature, FeedersGeo, LineGeometry, LineProps, LonLat, StationsGeo } from "../data/types";
 
 import type { Theme } from "../lib/theme";
 import { hexToRgb } from "../lib/lines";
 import { type Metric, interpolate, metricValue, opacityFor, particleCount, widthFor } from "./metrics";
 import type { FlowLine } from "./model";
+import { pointAlong } from "./path";
 import { placeParticles } from "./particles";
 
 const MAX_PARTICLES = 70;
@@ -151,4 +152,30 @@ export function buildLayers(input: LayerInput): Layer[] {
     );
   }
   return layers;
+}
+
+const LABEL_CHARS = [..."ABHJKLMPTO12"];
+
+// Letter badges on each line so lines are identifiable without relying on colour (WCAG 1.4.1)
+export function lineLabelLayer(flow: FlowLine[]): Layer {
+  const data = flow.map((line) => {
+    const longest = line.parts.reduce((a, b) => (b.total > a.total ? b : a));
+    return { line, position: pointAlong(longest, 0.5) };
+  });
+  return new TextLayer({
+    id: "line-labels",
+    data,
+    getPosition: (d: { position: LonLat }) => d.position,
+    getText: (d: { line: FlowLine }) => d.line.info.badge,
+    getColor: (d: { line: FlowLine }) => [...hexToRgb(d.line.info.text), 255],
+    getSize: 13,
+    fontFamily: "Outfit, sans-serif",
+    fontWeight: 700,
+    characterSet: LABEL_CHARS,
+    background: true,
+    getBackgroundColor: (d: { line: FlowLine }) => [...hexToRgb(d.line.info.color), 255],
+    backgroundPadding: [5, 2],
+    getBorderColor: [255, 255, 255, 230],
+    getBorderWidth: 1.5,
+  });
 }

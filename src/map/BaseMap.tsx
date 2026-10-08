@@ -40,12 +40,34 @@ interface Props {
   flyTo?: FlyTarget | null;
 }
 
+// deck.gl's overlay canvas does nothing for keyboard users (MapLibre's canvas keeps keyboard panning).
+// It is created asynchronously, so watch the wrapper from mount; returns a cleanup.
+function untabOverlayCanvas(container: HTMLElement): () => void {
+  const apply = () => {
+    for (const c of container.querySelectorAll("canvas:not(.maplibregl-canvas)")) {
+      if (c.getAttribute("tabindex") !== "-1") c.setAttribute("tabindex", "-1");
+    }
+  };
+  apply();
+  // deck sets tabindex after inserting the canvas, so watch attributes as well
+  const observer = new MutationObserver(apply);
+  observer.observe(container, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["tabindex"],
+  });
+  return () => observer.disconnect();
+}
+
 // MapLibre basemap + deck.gl overlay with the Valle de Aburrá context drawn below and labels above `layers`
 export function BaseMap({ bounds, padding, layers, context, theme, onClick, onError, flyTo }: Props) {
   const mapRef = useRef<MapRef>(null);
   const reduced = useReducedMotion() ?? false;
   // A deep link can ask for a flight before the style has loaded; wait for it
   const [loaded, setLoaded] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  useEffect(() => (wrapRef.current ? untabOverlayCanvas(wrapRef.current) : undefined), []);
   useEffect(() => {
     if (!flyTo || !loaded) return;
     mapRef.current?.flyTo({
@@ -58,24 +80,26 @@ export function BaseMap({ bounds, padding, layers, context, theme, onClick, onEr
   const below = useMemo(() => contextLayers(context, theme), [context, theme]);
   const above = useMemo(() => labelLayer(context, theme), [context, theme]);
   return (
-    <MapView
-      ref={mapRef}
-      initialViewState={{ bounds, fitBoundsOptions: { padding } }}
-      maxBounds={MAX_BOUNDS}
-      minZoom={MIN_ZOOM}
-      mapStyle={STYLES[theme]}
-      style={{ width: "100%", height: "100%" }}
-      attributionControl={false}
-      dragRotate={false}
-      onError={(e) => onError(e.error?.message ?? "The map could not be drawn")}
-      onLoad={() => setLoaded(true)}
-    >
-      <AttributionControl position="top-right" compact />
-      <DeckOverlay
-        layers={[...below, ...layers, ...above]}
-        {...(onClick ? { onClick } : {})}
-        getCursor={({ isHovering }) => (isHovering ? "pointer" : "grab")}
-      />
-    </MapView>
+    <div ref={wrapRef} className="h-full w-full">
+      <MapView
+        ref={mapRef}
+        initialViewState={{ bounds, fitBoundsOptions: { padding } }}
+        maxBounds={MAX_BOUNDS}
+        minZoom={MIN_ZOOM}
+        mapStyle={STYLES[theme]}
+        style={{ width: "100%", height: "100%" }}
+        attributionControl={false}
+        dragRotate={false}
+        onError={(e) => onError(e.error?.message ?? "The map could not be drawn")}
+        onLoad={() => setLoaded(true)}
+      >
+        <AttributionControl position="top-right" compact />
+        <DeckOverlay
+          layers={[...below, ...layers, ...above]}
+          {...(onClick ? { onClick } : {})}
+          getCursor={({ isHovering }) => (isHovering ? "pointer" : "grab")}
+        />
+      </MapView>
+    </div>
   );
 }

@@ -26,7 +26,14 @@ const box = await svg.boundingBox();
 if (box) await p.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.6);
 await p.waitForTimeout(300);
 await p.screenshot({ path: `${out}/calendar-hover.png` });
-console.log("hover tip:", (await p.locator("section[aria-label='2024, day by day'] [aria-label='tip']").count()) > 0);
+console.log(
+  "hover tip:",
+  (await p
+    .locator(
+      "section[aria-label='2024, day by day'] .plot-tip, section[aria-label='2024, day by day'] g[aria-label='tip']",
+    )
+    .count()) > 0,
+);
 await p.getByText("By hour", { exact: true }).click();
 await p.waitForTimeout(300);
 await p.screenshot({ path: `${out}/calendar-hourly.png` });

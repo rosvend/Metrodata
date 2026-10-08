@@ -115,7 +115,23 @@ export function CalendarPage() {
             <RankedDays ranked={ranked} spikes={spikes.data} selected={selected} onSelect={select} />
           </ChartCard>
 
-          <ChartCard className="lg:col-span-4" title="The day against its expected hours">
+          <ChartCard
+            className="lg:col-span-4"
+            title="The day against its expected hours"
+            controls={
+              <label className="flex items-center gap-2 text-[13px] text-ink-muted">
+                Go to date
+                <input
+                  type="date"
+                  min={COVERAGE[year]?.[0]}
+                  max={COVERAGE[year]?.[1]}
+                  value={selected ?? ""}
+                  onChange={(e) => e.target.value && select(e.target.value)}
+                  className="rounded-full bg-surface px-3 py-1 text-[13px] text-ink ring-1 ring-rule"
+                />
+              </label>
+            }
+          >
             {selected ? (
               <DayDetail date={selected} spikes={spikes.data} profiles={dayProfiles.data} theme={theme} />
             ) : (

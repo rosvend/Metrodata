@@ -15,6 +15,8 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
   - Green fills take near-black text (white on green fails AA).
   - Keep the UI language in English until the user says otherwise.
   - Check contrast (AA) for any new color pair.
+  - Run `uv run python -m scripts.metro.colorcheck` for new palettes. Colour must never be the only cue: lines always carry their letter.
+  - The calendar diverging scale is red → blue (red–green fails for protanopia).
 - Never show or compute station-level ridership, OD flows, onboard load or capacity.
 
 ## Stack
@@ -27,6 +29,8 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 - `npm run test:py`: pytest, including the real-data reference regression in `scripts/tests/test_reference.py`.
 - `npm run lint:py`: ruff lint + format check.
 - Frontend: `npm run dev`, `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run ui:shots` (screenshots plus overflow and console checks, with the dev server running).
+- Final checks are listed in the README table: `a11y-check` (axe, must be 0), `keyboard-check`, `demo-check`, `perf`.
+- Demo narration numbers come from `src/demo/facts.ts`. Never hard-code figures in captions.
 - `node scripts/ui/flow-check.mjs`: flow-map screenshots and a playback fps check on the real GPU. Headless Chrome needs `--use-angle=vulkan`, otherwise it renders on SwiftShader and fps is meaningless.
 - `npm run osm:boundaries`: municipal boundaries, metro-area mask and label points from the Colombia OSM file. Output: `municipalities.geojson` and `metro_mask.geojson`. Takes about 3 min; needs `.cache/osm`.
 - **Isochrones** (needs Docker): `npm run osm:extract` → `npm run valhalla:start` → `npm run isochrones` → `npm run valhalla:stop`. Full steps are in `docs/isochrones.md`. The OSM extract and tiles live in `.cache/` (gitignored).
@@ -96,9 +100,9 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 - Phase 5 (peaks and bottlenecks): done. See `docs/peaks.md`.
 - Phase 6 (calendar and spikes): done. See `docs/calendar.md`. Feria de las Flores dates are external and need verifying.
 - Phase 7 (access map): done. See `docs/access.md`.
-- Next: Phase 8 (performance, accessibility, demo mode, README, production build).
+- Phase 8 (polish): done. See `docs/polish.md` and `README.md`. All eight phases are complete.
 - **Layout rule (user, 2026-10-08):** each page fits one 1440×900 view without scrolling on desktop. `npm run ui:shots` reports any overflow.
-- **FPS:** headless measurements are noisy (23–56 fps on the same code). Tuning is deferred to Phase 8.
+- **FPS:** measure only against the production build (`vite preview`), with Chrome on Vulkan. That gives 60 fps; dev-server numbers are meaningless.
 - Repo: github.com/rosvend/Metrodata (private), branch `main`.
 - The user has a Google Maps API key for a LATER comparison of isochrones. It must never be committed or shipped to the frontend; read it from an env var in an offline script only.
 

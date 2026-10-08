@@ -1,3 +1,4 @@
+import { useDemo } from "../demo/useDemo";
 import type { Theme } from "../lib/theme";
 import { FilterControls } from "./FilterControls";
 import { MainNav } from "./MainNav";
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function TopBar({ theme, onToggleTheme, onOpenAbout }: Props) {
+  const demo = useDemo();
   return (
     <header className="z-20 border-b border-rule bg-bg/95 backdrop-blur sm:sticky sm:top-0 lg:static">
       <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-10 gap-y-3 px-4 py-3 sm:px-8">
@@ -27,6 +29,13 @@ export function TopBar({ theme, onToggleTheme, onOpenAbout }: Props) {
           <FilterControls />
         </div>
         <div className="order-2 ml-auto flex items-center gap-2 lg:order-4 lg:ml-0">
+          <button
+            type="button"
+            onClick={demo.index === null ? demo.start : demo.stop}
+            className="rounded-full bg-green px-4 py-2 text-[15px] font-semibold text-metro-ink hover:brightness-95"
+          >
+            {demo.index === null ? "Demo" : "End demo"}
+          </button>
           <button
             type="button"
             onClick={onOpenAbout}

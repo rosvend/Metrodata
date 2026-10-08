@@ -20,6 +20,7 @@
   --rule: #e1e7e6;
   --accent: #2f7a22;
   --alert: #c2401c;
+  --spike: #215ca0;
   --panel: #111716;
   --panel-ink: #f2f5f4;
   --panel-muted: #a6b2b0;
@@ -38,6 +39,7 @@
   --rule: #26302f;
   --accent: #74c95a;
   --alert: #f07650;
+  --spike: #7fb2ea;
   --panel: #1b2423;
   --focus: #74c95a;
 
@@ -56,6 +58,7 @@
   --color-rule: var(--rule);
   --color-accent: var(--accent);
   --color-alert: var(--alert);
+  --color-spike: var(--spike);
   --color-green: var(--metro-green);
   --color-metro-ink: var(--metro-ink);
   --color-panel: var(--panel);
@@ -78,6 +81,20 @@ body {
   outline-offset: 2px;
 }
 
+/* The native date picker's calendar button does not trigger :focus-visible */
+input[type="date"]:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* MapLibre controls remove outlines; restore a visible focus ring */
+.maplibregl-ctrl summary:focus-visible,
+.maplibregl-ctrl a:focus-visible,
+.maplibregl-ctrl button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 /* Inside the dark line panel the focus ring switches to Metro green (7.6:1) */
 [data-surface="panel"] {
   --focus: var(--metro-green);
@@ -96,10 +113,13 @@ body {
 .plot-figure svg {
   overflow: visible;
 }
-.plot-figure [aria-label="tip"] path {
+/* Tips created at render get .plot-tip; tips Plot creates lazily on hover keep aria-label="tip" */
+.plot-figure .plot-tip path,
+.plot-figure g[aria-label="tip"] path {
   fill: var(--surface);
   stroke: var(--rule);
 }
-.plot-figure [aria-label="tip"] text {
+.plot-figure .plot-tip text,
+.plot-figure g[aria-label="tip"] text {
   fill: var(--ink);
 }
