@@ -1,0 +1,34 @@
+[project]
+name = "metro-medellin-bi"
+version = "0.1.0"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "pandas>=2.2",
+  "openpyxl>=3.1",
+  "holidays>=0.57",
+  "geopandas>=1.0",
+  "pyproj>=3.6",
+  "shapely>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "matplotlib>=3.11.2",
+    "osmium>=4.3.1",
+    "pytest>=8",
+    "ruff>=0.16.10",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["scripts/tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

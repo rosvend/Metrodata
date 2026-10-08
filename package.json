@@ -1,0 +1,15 @@
+{
+  "name": "metro-medellin-bi",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "data": "uv run python -m scripts.metro.build",
+    "test:py": "uv run pytest",
+    "osm:extract": "uv run python -m scripts.metro.osm_extract",
+    "valhalla:start": "./scripts/valhalla.sh start",
+    "valhalla:stop": "./scripts/valhalla.sh stop",
+    "isochrones": "uv run python -m scripts.metro.build_isochrones && npm run data",
+    "lint:py": "uv run ruff check scripts && uv run ruff format --check scripts"
+  }
+}
