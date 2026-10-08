@@ -26,7 +26,7 @@ COVERAGE = {
 }
 
 # Probable logging failure: kept in outputs, excluded from all KPIs
-EXCLUDED_DATES = {"2024-02-20": "System total ~6.6K vs ~700K expected; probable logging failure"}
+EXCLUDED_DATES = {"2024-02-20": "probable logging failure; about 700,000 were expected"}
 
 LINE_MODES = {
     "A": "metro",

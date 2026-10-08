@@ -9,17 +9,19 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 - TDD. Keep the code small and modular (KISS/YAGNI). Code comments are one-liners; long-form docs go in `docs/`.
 - `data/` is read-only. `public/data/` is generated and gitignored. Don't commit large derived files unless asked.
 - No paid API keys. No `any` in TypeScript.
+- Design: the brief palette, Caladea headings and Overpass UI. Motion only answers actions. Don't use all-caps labels, middle-dot meta strings or decorative stripes. Check contrast (AA) for any new color pair.
 - Never show or compute station-level ridership, OD flows, onboard load or capacity.
 
 ## Stack
 - **Data:** Python 3.12 via `uv` (pandas, openpyxl, holidays, geopandas, pyproj, shapely, pytest, ruff) in `scripts/metro/`.
 - **Isochrones (Phase 2):** Valhalla in Docker, pedestrian costing, precomputed offline.
-- **Frontend (Phase 3+):** TypeScript strict, React, Vite, MapLibre GL, deck.gl, Tailwind, Observable Plot or visx, Framer Motion, Vitest. Basemap: OpenFreeMap/CARTO with no key.
+- **Frontend:** React 19, Vite 8, TypeScript 6 (strict; TS 7 is not yet supported by typescript-eslint), react-router 8 (declarative), Tailwind 4, `motion` (Framer Motion), Vitest + Testing Library, ESLint + Prettier, and Playwright (system Chrome) for screenshots. Still to add: MapLibre GL, deck.gl and Observable Plot/visx. Basemap: OpenFreeMap/CARTO with no key.
 
 ## Commands
 - `npm run data`: regenerates everything in `public/data/` (runs `uv run python -m scripts.metro.build`, about 3 s).
 - `npm run test:py`: pytest, including the real-data reference regression in `scripts/tests/test_reference.py`.
 - `npm run lint:py`: ruff lint + format check.
+- Frontend: `npm run dev`, `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run ui:shots` (screenshots plus overflow and console checks, with the dev server running).
 - **Isochrones** (needs Docker): `npm run osm:extract` → `npm run valhalla:start` → `npm run isochrones` → `npm run valhalla:stop`. Full steps are in `docs/isochrones.md`. The OSM extract and tiles live in `.cache/` (gitignored).
 
 ## Pipeline layout (`scripts/metro/`)
@@ -81,7 +83,9 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 ## Phase status
 - Phase 1 (pipeline): done.
 - Phase 2 (isochrones): done. 50/50 tipo-1 stations, 0 failures.
-- Next: Phase 3 (app shell).
+- Phase 3 (shell + design system): done. See `docs/frontend.md`.
+- Next: Phase 4 (flow map).
+- Repo: github.com/rosvend/Metrodata (private), branch `main`.
 - The user has a Google Maps API key for a LATER comparison of isochrones. It must never be committed or shipped to the frontend; read it from an env var in an offline script only.
 
 ## Isochrone rules
