@@ -20,9 +20,6 @@ export interface LayerInput {
   noData: Feature<LineGeometry, LineProps>[];
   stations: StationsGeo | null;
   feeders: FeedersGeo | null;
-  // Static layers built once per data/theme so deck.gl can skip them while animating
-  below: Layer[];
-  above: Layer[];
   t: number;
   clock: number;
   metric: Metric;
@@ -53,7 +50,7 @@ export function buildLayers(input: LayerInput): Layer[] {
   const dim = (id: string) => focus !== null && focus !== id;
   const trigger = [t, metric, max, focus];
 
-  const layers: Layer[] = [...input.below];
+  const layers: Layer[] = [];
 
   if (input.feeders) {
     layers.push(
@@ -153,6 +150,5 @@ export function buildLayers(input: LayerInput): Layer[] {
       }),
     );
   }
-  layers.push(...input.above);
   return layers;
 }

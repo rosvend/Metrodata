@@ -3,7 +3,7 @@ import logging
 
 import geopandas as gpd
 
-from scripts.metro import outputs, quality
+from scripts.metro import access, outputs, quality
 from scripts.metro.config import (
     BARRIOS_FILE,
     COMUNAS_FILE,
@@ -14,7 +14,14 @@ from scripts.metro.config import (
     STATIONS_FILE,
 )
 from scripts.metro.export import write_geojson, write_json
-from scripts.metro.geo import dedupe_stations, prepare_barrios, prepare_comunas, prepare_feeders, prepare_lines
+from scripts.metro.geo import (
+    dedupe_stations,
+    prepare_barrios,
+    prepare_comunas,
+    prepare_feeders,
+    prepare_lines,
+    simplify_for_web,
+)
 from scripts.metro.pipeline import load_ridership
 
 log = logging.getLogger("metro.build")
@@ -58,8 +65,18 @@ def main() -> None:
     write_geojson(OUT_DIR / "lines.geojson", lines)
     write_geojson(OUT_DIR / "stations.geojson", stations)
     write_geojson(OUT_DIR / "feeders.geojson", prepare_feeders(gpd.read_file(FEEDERS_FILE)))
-    write_geojson(OUT_DIR / "barrios.geojson", prepare_barrios(gpd.read_file(BARRIOS_FILE)))
+    barrios = prepare_barrios(gpd.read_file(BARRIOS_FILE))
+    write_geojson(OUT_DIR / "barrios.geojson", simplify_for_web(barrios, meters=5))
     write_geojson(OUT_DIR / "comunas.geojson", prepare_comunas(gpd.read_file(COMUNAS_FILE)))
+    iso_path = OUT_DIR / "isochrones.geojson"
+    if iso_path.exists():
+        coverage, summary = access.build(
+            gpd.read_file(iso_path), stations, prepare_barrios(gpd.read_file(BARRIOS_FILE))
+        )
+        write_geojson(OUT_DIR / "access_coverage.geojson", coverage)
+        write_json(OUT_DIR / "access.json", summary)
+    else:
+        log.info("isochrones.geojson missing: skipping access outputs (run npm run isochrones)")
     write_json(OUT_DIR / "data_quality.json", quality.report(df, file_report, stations_summary, spikes, _isochrones()))
     log.info("wrote outputs to %s", OUT_DIR)
 

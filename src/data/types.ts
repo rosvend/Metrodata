@@ -165,3 +165,53 @@ export interface MonthlyEntry {
   system: number;
   lines: Record<string, number>;
 }
+
+export interface IsochroneProps {
+  station_id: string;
+  name: string;
+  minutes: number;
+  area_km2: number;
+}
+
+export type IsochronesGeo = FeatureCollection<AreaGeometry, IsochroneProps>;
+
+export type AccessFilter = "all" | "metro" | "tranvia" | "metrocable";
+
+export type CoverageGeo = FeatureCollection<
+  AreaGeometry,
+  { filter: AccessFilter; kind: "band" | "overlap"; minutes: number; area_km2: number }
+>;
+
+export interface AccessSummary {
+  fully_inside_threshold: number;
+  filters: Record<
+    AccessFilter,
+    {
+      stations: number;
+      area_15_km2: number;
+      overlap_15_km2: number;
+      medellin_urban_share_15: number;
+      barrios: { name: string; comuna: number; share: number }[];
+    }
+  >;
+  nearest: Record<string, { station_id: string; distance_m: number }[]>;
+}
+
+export interface IsochroneStats {
+  source: {
+    osm: { osm_data_timestamp: string };
+    valhalla_version: string;
+    walking_speed_kmh: number;
+    generalize_m: number;
+  };
+  failures: { station_id: string; name: string; reason: string }[];
+  stations: {
+    station_id: string;
+    area_15_km2: number;
+    overlap_15_km2: number;
+    overlap_share: number;
+    neighbours: { station_id: string; overlap_km2: number }[];
+    circularity_15: number;
+    snap_m: number;
+  }[];
+}

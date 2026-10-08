@@ -127,3 +127,10 @@ def prepare_comunas(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     out["name"] = out["name"].str.replace(r"^Comuna\s+\d+\s*-\s*", "", regex=True)
     out["geometry"] = out.geometry.simplify(0.0001, preserve_topology=True)
     return out.reset_index(drop=True)
+
+
+def simplify_for_web(gdf: gpd.GeoDataFrame, meters: float) -> gpd.GeoDataFrame:
+    """Douglas-Peucker in metres (EPSG:9377) for a lighter download; analysis keeps full geometry."""
+    projected = gdf.to_crs("EPSG:9377")
+    projected["geometry"] = projected.geometry.simplify(meters, preserve_topology=True)
+    return projected.to_crs(gdf.crs)

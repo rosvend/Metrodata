@@ -90,3 +90,12 @@ def test_prepare_comunas_keeps_name_and_ref():
     out = prepare_comunas(raw)
     assert list(out.columns) == ["name", "ref", "geometry"]
     assert out.iloc[0]["name"] == "Buenos Aires"
+
+
+def test_simplify_for_web_drops_vertices_and_keeps_area():
+    from scripts.metro.geo import simplify_for_web
+
+    circle = gpd.GeoDataFrame({"n": [1]}, geometry=[Point(-75.56, 6.25).buffer(0.01, 256)], crs="EPSG:4326")
+    out = simplify_for_web(circle, meters=5)
+    assert len(out.geometry.iloc[0].exterior.coords) < len(circle.geometry.iloc[0].exterior.coords)
+    assert out.geometry.iloc[0].area == pytest.approx(circle.geometry.iloc[0].area, rel=0.01)
