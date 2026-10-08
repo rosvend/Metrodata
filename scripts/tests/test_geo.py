@@ -77,3 +77,16 @@ def test_dedupe_ignores_name_case():
         ]
     )
     assert len(dedupe_stations(s)) == 1
+
+
+def test_prepare_comunas_keeps_name_and_ref():
+    from scripts.metro.geo import prepare_comunas
+
+    raw = gpd.GeoDataFrame(
+        [{"name": "Comuna 9 - Buenos Aires", "ref": "9", "boundary": "administrative", "wikidata": None}],
+        geometry=[Point(-75.55, 6.24).buffer(0.01)],
+        crs="EPSG:4326",
+    )
+    out = prepare_comunas(raw)
+    assert list(out.columns) == ["name", "ref", "geometry"]
+    assert out.iloc[0]["name"] == "Buenos Aires"

@@ -67,10 +67,17 @@ export function Tooltip({ hover, flow, noData, stations, t, metric, context }: P
     );
   }
   if (!body) return null;
+  // Viewport-anchored so it floats above the control panels; flips away from the right and bottom edges
+  const flipX = hover.x > window.innerWidth - 320;
+  const flipY = hover.y > window.innerHeight * 0.55;
   return (
     <div
-      className="pointer-events-none absolute z-10 w-max max-w-72 rounded-2xl bg-panel px-4 py-3 text-[14px] text-panel-ink shadow-xl"
-      style={{ left: hover.x + 14, top: hover.y + 14 }}
+      className="pointer-events-none fixed z-40 w-max max-w-72 rounded-2xl bg-panel px-4 py-3 text-[14px] text-panel-ink shadow-xl"
+      style={{
+        left: hover.x + (flipX ? -14 : 14),
+        top: hover.y + (flipY ? -14 : 14),
+        transform: `translate(${flipX ? "-100%" : "0"}, ${flipY ? "-100%" : "0"})`,
+      }}
     >
       {body}
     </div>

@@ -1,7 +1,8 @@
-import type { Layer, PickingInfo } from "@deck.gl/core";
+import type { Layer } from "@deck.gl/core";
 import { PathStyleExtension, type PathStyleExtensionProps } from "@deck.gl/extensions";
 import { PathLayer, ScatterplotLayer } from "@deck.gl/layers";
 import type { Feature, FeedersGeo, LineGeometry, LineProps, LonLat, StationsGeo } from "../data/types";
+
 import type { Theme } from "../lib/theme";
 import { hexToRgb } from "../lib/lines";
 import { type Metric, interpolate, metricValue, opacityFor, particleCount, widthFor } from "./metrics";
@@ -19,13 +20,16 @@ export interface LayerInput {
   noData: Feature<LineGeometry, LineProps>[];
   stations: StationsGeo | null;
   feeders: FeedersGeo | null;
+  // Static layers built once per data/theme so deck.gl can skip them while animating
+  below: Layer[];
+  above: Layer[];
   t: number;
   clock: number;
   metric: Metric;
   max: number;
   focus: string | null;
   theme: Theme;
-  onHover: (target: HoverTarget | null, info: PickingInfo) => void;
+  onHover: (target: HoverTarget | null, client: { x: number; y: number }) => void;
   onClick: (lineId: string | null) => void;
 }
 
@@ -33,6 +37,12 @@ interface Segment {
   line: FlowLine;
   path: LonLat[];
 }
+
+// Deck passes the DOM event as the second hover argument; tooltips are placed in viewport coordinates
+const client = (event: { srcEvent?: unknown }) => {
+  const e = event.srcEvent as { clientX?: number; clientY?: number } | undefined;
+  return { x: e?.clientX ?? 0, y: e?.clientY ?? 0 };
+};
 
 const valueAt = (l: FlowLine, t: number, metric: Metric) => metricValue(interpolate(l.values, t), metric, l);
 
@@ -43,7 +53,7 @@ export function buildLayers(input: LayerInput): Layer[] {
   const dim = (id: string) => focus !== null && focus !== id;
   const trigger = [t, metric, max, focus];
 
-  const layers: Layer[] = [];
+  const layers: Layer[] = [...input.below];
 
   if (input.feeders) {
     layers.push(
@@ -71,7 +81,8 @@ export function buildLayers(input: LayerInput): Layer[] {
       getDashArray: [2, 2],
       extensions: [DASH],
       pickable: true,
-      onHover: (info) => input.onHover(info.object ? { kind: "nodata", id: info.object.properties.id } : null, info),
+      onHover: (info, event) =>
+        input.onHover(info.object ? { kind: "nodata", id: info.object.properties.id } : null, client(event)),
     }),
     new PathLayer<Segment>({
       id: "casing",
@@ -100,7 +111,8 @@ export function buildLayers(input: LayerInput): Layer[] {
       extensions: [DASH],
       pickable: true,
       autoHighlight: false,
-      onHover: (info) => input.onHover(info.object ? { kind: "line", id: info.object.line.id } : null, info),
+      onHover: (info, event) =>
+        input.onHover(info.object ? { kind: "line", id: info.object.line.id } : null, client(event)),
       onClick: (info) => input.onClick(info.object ? info.object.line.id : null),
       updateTriggers: { getWidth: trigger, getColor: trigger },
       transitions: { getWidth: 0 },
@@ -136,9 +148,11 @@ export function buildLayers(input: LayerInput): Layer[] {
         lineWidthUnits: "pixels",
         stroked: true,
         pickable: true,
-        onHover: (info) => input.onHover(info.object ? { kind: "station", id: info.object.properties.id } : null, info),
+        onHover: (info, event) =>
+          input.onHover(info.object ? { kind: "station", id: info.object.properties.id } : null, client(event)),
       }),
     );
   }
+  layers.push(...input.above);
   return layers;
 }

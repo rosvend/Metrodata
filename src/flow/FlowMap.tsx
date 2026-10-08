@@ -1,11 +1,11 @@
-import type { PickingInfo } from "@deck.gl/core";
 import { MapLibreOverlay, type MapLibreOverlayProps } from "@deck.gl/maplibre";
 import { setWorkerUrl } from "maplibre-gl";
 import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useMemo, useState } from "react";
-import { Map as MapView, useControl } from "react-map-gl/maplibre";
+import { AttributionControl, Map as MapView, useControl } from "react-map-gl/maplibre";
 import type { Feature, FeedersGeo, LineGeometry, LineProps, StationsGeo } from "../data/types";
+import { type ContextData, contextLayers, labelLayer } from "./context";
 import type { Theme } from "../lib/theme";
 import { type HoverTarget, buildLayers } from "./layers";
 import type { Metric } from "./metrics";
@@ -13,10 +13,21 @@ import type { FlowLine } from "./model";
 
 setWorkerUrl(maplibreWorkerUrl);
 
+// Label-free basemaps: our own layers name the municipalities that matter
 const STYLES: Record<Theme, string> = {
-  light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
-  dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+  light: "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json",
+  dark: "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json",
 };
+
+// Panning and zooming stay within the Valle de Aburrá
+const MAX_BOUNDS: [number, number, number, number] = [-75.95, 5.95, -75.2, 6.56];
+const MIN_ZOOM = 10;
+
+// Leave room for the floating title card and control panel on large screens
+const fitPadding = () =>
+  typeof matchMedia === "function" && matchMedia("(min-width: 1024px)").matches
+    ? { top: 40, bottom: 220, left: 60, right: 60 }
+    : 24;
 
 function DeckOverlay(props: MapLibreOverlayProps) {
   const overlay = useControl<MapLibreOverlay>(() => new MapLibreOverlay(props));
@@ -24,6 +35,7 @@ function DeckOverlay(props: MapLibreOverlayProps) {
   return null;
 }
 
+// x and y are viewport (client) coordinates
 export interface Hover {
   target: HoverTarget;
   x: number;
@@ -35,6 +47,7 @@ interface Props {
   noData: Feature<LineGeometry, LineProps>[];
   stations: StationsGeo | null;
   feeders: FeedersGeo | null;
+  context: ContextData;
   t: number;
   clock: number;
   metric: Metric;
@@ -61,13 +74,17 @@ export function FlowMap(props: Props) {
   const [hoverLine, setHoverLine] = useState<string | null>(null);
   const bounds = useMemo(() => boundsOf(flow), [flow]);
 
-  const handleHover = (target: HoverTarget | null, info: PickingInfo) => {
+  const handleHover = (target: HoverTarget | null, at: { x: number; y: number }) => {
     setHoverLine(target?.kind === "line" ? target.id : null);
-    onHover(target ? { target, x: info.x, y: info.y } : null);
+    onHover(target ? { target, ...at } : null);
   };
 
+  const below = useMemo(() => contextLayers(props.context, props.theme), [props.context, props.theme]);
+  const above = useMemo(() => labelLayer(props.context, props.theme), [props.context, props.theme]);
   const layers = buildLayers({
     ...props,
+    below,
+    above,
     focus: hoverLine ?? props.selected,
     onHover: handleHover,
     onClick: onSelect,
@@ -75,13 +92,16 @@ export function FlowMap(props: Props) {
 
   return (
     <MapView
-      initialViewState={{ bounds, fitBoundsOptions: { padding: 32 } }}
+      initialViewState={{ bounds, fitBoundsOptions: { padding: fitPadding() } }}
+      maxBounds={MAX_BOUNDS}
+      minZoom={MIN_ZOOM}
       mapStyle={STYLES[props.theme]}
       style={{ width: "100%", height: "100%" }}
-      attributionControl={{ compact: true }}
+      attributionControl={false}
       dragRotate={false}
       onError={(e) => props.onError(e.error?.message ?? "The map could not be drawn")}
     >
+      <AttributionControl position="top-right" compact />
       <DeckOverlay
         layers={layers}
         onClick={(info) => !info.object && onSelect(null)}

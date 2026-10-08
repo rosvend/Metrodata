@@ -41,17 +41,17 @@ for (const theme of ["light", "dark"]) {
       () =>
         new Promise((res) => {
           let n = 0;
-          const start = performance.now();
-          const tick = (now) => (now - start < 3000 ? (n++, requestAnimationFrame(tick)) : res(n / 3));
-          requestAnimationFrame(tick);
+          let start = performance.now() + 1000;
+          const tick = (now) => (now - start < 6000 ? (n++, requestAnimationFrame(tick)) : res(n / 6));
+          setTimeout(() => requestAnimationFrame(tick), 1000);
         }),
     );
-    console.log(`playback fps (Chrome on the real GPU, 3 s): ${fps.toFixed(1)}`);
+    console.log(`playback fps (Chrome on the real GPU, 6 s after 1 s warm-up): ${fps.toFixed(1)}`);
     await page.screenshot({ path: `${out}/flowmap-playing.png` });
     await page.getByRole("button", { name: "Pause the day" }).click();
     await page.getByRole("button", { name: "Close line details" }).click();
     for (const label of ["Per km", "Share of day"]) {
-      await page.getByRole("radio", { name: label }).check({ force: true });
+      await page.getByText(label, { exact: true }).click();
       await page.waitForTimeout(500);
       await page.screenshot({ path: `${out}/flowmap-${label.replace(/ /g, "-").toLowerCase()}.png` });
     }

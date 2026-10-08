@@ -109,6 +109,7 @@ def kpi_report(df: pd.DataFrame, lengths: dict[str, dict]) -> dict:
 
     return {
         "by_year": by_year,
+        "day_type_peaks": day_type_peaks(df),
         "jan_jul": jan_jul,
         "like_for_like_growth": growth,
         "monthly": monthly(df),
@@ -117,6 +118,34 @@ def kpi_report(df: pd.DataFrame, lengths: dict[str, dict]) -> dict:
             "units": "boardings (a transfer passenger is counted once per line used)",
         },
     }
+
+
+def _peak_stats(d: pd.DataFrame, day_type: str) -> dict:
+    prof = kpis.mean_profile(d, day_type)
+    peak = kpis.peak_hour_concentration(prof)
+    return {
+        "operating_days": int((d["day_type"] == day_type).sum()),
+        "peak_hour": {"hour": peak["hour"], "share": _r(peak["share"], 4)},
+        "peak_to_average_ratio": _r(kpis.peak_to_average_ratio(prof), 3),
+    }
+
+
+def day_type_peaks(df: pd.DataFrame) -> dict:
+    """Peak hour, peak share and peak-to-average per year x day type, for the system and each line."""
+    out: dict = {}
+    for y in sorted(df["year"].unique()):
+        dy = df[df["year"] == y]
+        out[str(y)] = {}
+        for t in DAY_TYPES:
+            if not (dy["day_type"] == t).any():
+                continue
+            lines = {}
+            for ln in LINE_ORDER:
+                d = kpis.days(dy, ln)
+                if (d["day_type"] == t).any():
+                    lines[ln] = _peak_stats(d, t)
+            out[str(y)][t] = {"system": _peak_stats(kpis.days(dy), t), "lines": lines}
+    return out
 
 
 def monthly(df: pd.DataFrame) -> dict:

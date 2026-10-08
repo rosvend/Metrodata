@@ -119,3 +119,11 @@ def prepare_feeders(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 def prepare_barrios(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return to_wgs84(raw[["nombre", "codigo_comuna", "geometry"]])
+
+
+def prepare_comunas(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Medellín comunas with the 'Comuna N - ' prefix removed from the name."""
+    out = raw[["name", "ref", "geometry"]].copy()
+    out["name"] = out["name"].str.replace(r"^Comuna\s+\d+\s*-\s*", "", regex=True)
+    out["geometry"] = out.geometry.simplify(0.0001, preserve_topology=True)
+    return out.reset_index(drop=True)

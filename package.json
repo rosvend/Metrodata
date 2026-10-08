@@ -19,7 +19,8 @@
     "lint": "eslint src && prettier --check src scripts/ui",
     "typecheck": "tsc",
     "ui:shots": "node scripts/ui/screenshots.mjs",
-    "format": "prettier --write src scripts/ui"
+    "format": "prettier --write src scripts/ui",
+    "osm:boundaries": "uv run python -m scripts.metro.boundaries"
   },
   "dependencies": {
     "@deck.gl/core": "^9.4.0",

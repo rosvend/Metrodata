@@ -36,3 +36,13 @@ def test_daily_totals_keeps_closures_as_null():
     out = outputs.daily_totals(_df())
     assert out["system"] == [13, 12]
     assert out["lines"]["L"] == [3, None]
+
+
+def test_day_type_peaks_reuse_kpi_functions():
+    df = _df()
+    out = outputs.day_type_peaks(df)
+    a = out["2025"]["weekday"]["lines"]["A"]
+    assert a["peak_hour"] == {"hour": 7, "share": 1.0}
+    assert a["operating_days"] == 2
+    assert out["2025"]["weekday"]["system"]["peak_hour"]["hour"] == 7
+    assert "saturday" not in out["2025"]

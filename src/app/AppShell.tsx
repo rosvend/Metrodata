@@ -18,10 +18,13 @@ export function AppShell() {
         >
           Skip to content
         </a>
-        <TopBar theme={theme} onToggleTheme={toggleTheme} onOpenAbout={() => setAboutOpen(true)} />
-        <main id="main" className="mx-auto max-w-[1440px] px-4 py-8 sm:px-8 sm:py-10">
-          <Outlet />
-        </main>
+        {/* On large screens the shell is exactly one viewport tall; pages scroll inside main */}
+        <div className="flex min-h-dvh flex-col lg:h-dvh">
+          <TopBar theme={theme} onToggleTheme={toggleTheme} onOpenAbout={() => setAboutOpen(true)} />
+          <main id="main" className="flex-1 lg:min-h-0 lg:overflow-y-auto">
+            <Outlet />
+          </main>
+        </div>
         <AboutDrawer open={aboutOpen} onClose={() => setAboutOpen(false)} />
       </MotionConfig>
     </ThemeContext>

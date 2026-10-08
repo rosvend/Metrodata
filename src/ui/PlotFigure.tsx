@@ -9,5 +9,5 @@ export function PlotFigure({ render, deps }: { render: () => Element; deps: unkn
     return () => el.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
-  return <div ref={ref} />;
+  return <div ref={ref} className="plot-figure" />;
 }

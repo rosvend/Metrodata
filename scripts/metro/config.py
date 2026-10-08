@@ -13,6 +13,7 @@ STATIONS_FILE = DATA_DIR / "Estaciones_Sistema_Metro.geojson"
 LINES_FILE = DATA_DIR / "lineas_del_sistema_de_tra.geojson"
 FEEDERS_FILE = DATA_DIR / "Rutas_Alimentadoras.geojson"
 BARRIOS_FILE = DATA_DIR / "medellin_barrios.geojson"
+COMUNAS_FILE = DATA_DIR / "comunas_medellin.geojson"
 
 # Hour-of-operation bands: 4 means 04:00-04:59
 HOURS = list(range(4, 24))

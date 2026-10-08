@@ -8,6 +8,7 @@ import { Loading } from "./ui/Status";
 
 // Map pages pull in MapLibre and deck.gl, so they load on demand
 const FlowPage = lazy(() => import("./pages/FlowPage").then((m) => ({ default: m.FlowPage })));
+const PeaksPage = lazy(() => import("./pages/PeaksPage").then((m) => ({ default: m.PeaksPage })));
 
 const PHASE_BY_PATH: Record<string, number> = { "/": 4, "/peaks": 5, "/calendar": 6, "/access": 7 };
 
@@ -24,7 +25,15 @@ export function App() {
               </Suspense>
             }
           />
-          {PAGES.filter((p) => p.path !== "/").map((p) => (
+          <Route
+            path="/peaks"
+            element={
+              <Suspense fallback={<Loading label="Loading charts" />}>
+                <PeaksPage />
+              </Suspense>
+            }
+          />
+          {PAGES.filter((p) => p.path !== "/" && p.path !== "/peaks").map((p) => (
             <Route
               key={p.path}
               path={p.path}

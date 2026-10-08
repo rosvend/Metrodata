@@ -55,6 +55,7 @@ export interface LineKpis {
 
 export interface KpiReport {
   by_year: Record<string, { months: number[]; system: Omit<LineKpis, "line_share">; lines: Record<string, LineKpis> }>;
+  day_type_peaks: Record<string, Partial<Record<DayTypeKey, DayTypePeaks>>>;
 }
 
 export type LonLat = [number, number];
@@ -94,3 +95,33 @@ export interface StationProps {
 export type LinesGeo = FeatureCollection<LineGeometry, LineProps>;
 export type StationsGeo = FeatureCollection<{ type: "Point"; coordinates: LonLat }, StationProps>;
 export type FeedersGeo = FeatureCollection<LineGeometry, { ruta: string; linea: string }>;
+
+export type AreaGeometry =
+  { type: "Polygon"; coordinates: LonLat[][] } | { type: "MultiPolygon"; coordinates: LonLat[][][] };
+
+export interface MunicipalityProps {
+  name: string;
+  metro_area: boolean;
+  label_lon: number;
+  label_lat: number;
+}
+
+export type MunicipalitiesGeo = FeatureCollection<AreaGeometry, MunicipalityProps>;
+export type MaskGeo = FeatureCollection<AreaGeometry, { name: string }>;
+export type ComunasGeo = FeatureCollection<AreaGeometry, { name: string; ref: string }>;
+
+export interface PeakStats {
+  operating_days: number;
+  peak_hour: { hour: number; share: number };
+  peak_to_average_ratio: number;
+}
+
+export interface DayTypePeaks {
+  system: PeakStats;
+  lines: Record<string, PeakStats>;
+}
+
+export interface PeaksJson {
+  day_type: "weekday";
+  lines: Record<string, { dates: string[]; peak: number[]; hour: number[] }>;
+}

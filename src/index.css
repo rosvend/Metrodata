@@ -91,3 +91,15 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Observable Plot tips and text follow the theme */
+.plot-figure svg {
+  overflow: visible;
+}
+.plot-figure [aria-label="tip"] path {
+  fill: var(--surface);
+  stroke: var(--rule);
+}
+.plot-figure [aria-label="tip"] text {
+  fill: var(--ink);
+}

@@ -22,6 +22,13 @@ for (const theme of ["light", "dark"]) {
       await page.screenshot({ path: `${out}/${slug}-${name}-${theme}.png`, fullPage: true });
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
       if (overflow) errors.push(`${theme}/${name}${path}: horizontal overflow`);
+      if (name === "desktop" && theme === "light") {
+        const fit = await page.evaluate(() => {
+          const m = document.querySelector("main");
+          return m ? m.scrollHeight - m.clientHeight : 0;
+        });
+        console.log(`${path}: ${fit > 0 ? `needs ${fit}px of scrolling` : "fits in one view"} at 1440x900`);
+      }
     }
     await page.goto(base + "/");
     await page.locator("h1").first().waitFor();

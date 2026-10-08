@@ -11,7 +11,7 @@ interface Props {
 
 export function TopBar({ theme, onToggleTheme, onOpenAbout }: Props) {
   return (
-    <header className="z-20 border-b border-rule bg-bg/95 backdrop-blur sm:sticky sm:top-0">
+    <header className="z-20 border-b border-rule bg-bg/95 backdrop-blur sm:sticky sm:top-0 lg:static">
       <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-10 gap-y-3 px-4 py-3 sm:px-8">
         <a href="/" className="order-1 flex items-center gap-3" aria-label="Metrodata home">
           <img src="/Metro_Medellín_Logo.svg" alt="" className="size-12 rounded-[4px]" />

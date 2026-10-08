@@ -28,6 +28,7 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 - `npm run lint:py`: ruff lint + format check.
 - Frontend: `npm run dev`, `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run ui:shots` (screenshots plus overflow and console checks, with the dev server running).
 - `node scripts/ui/flow-check.mjs`: flow-map screenshots and a playback fps check on the real GPU. Headless Chrome needs `--use-angle=vulkan`, otherwise it renders on SwiftShader and fps is meaningless.
+- `npm run osm:boundaries`: municipal boundaries, metro-area mask and label points from the Colombia OSM file. Output: `municipalities.geojson` and `metro_mask.geojson`. Takes about 3 min; needs `.cache/osm`.
 - **Isochrones** (needs Docker): `npm run osm:extract` → `npm run valhalla:start` → `npm run isochrones` → `npm run valhalla:stop`. Full steps are in `docs/isochrones.md`. The OSM extract and tiles live in `.cache/` (gitignored).
 
 ## Pipeline layout (`scripts/metro/`)
@@ -92,7 +93,10 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 - Phase 2 (isochrones): done. 50/50 tipo-1 stations, 0 failures.
 - Phase 3 (shell + design system): done. See `docs/frontend.md`.
 - Phase 4 (flow map): done. See `docs/flow-map.md`.
-- Next: Phase 5 (peaks and bottlenecks).
+- Phase 5 (peaks and bottlenecks): done. See `docs/peaks.md`.
+- Next: Phase 6 (calendar).
+- **Layout rule (user, 2026-10-08):** each page fits one 1440×900 view without scrolling on desktop. `npm run ui:shots` reports any overflow.
+- **FPS:** headless measurements are noisy (23–56 fps on the same code). Tuning is deferred to Phase 8.
 - Repo: github.com/rosvend/Metrodata (private), branch `main`.
 - The user has a Google Maps API key for a LATER comparison of isochrones. It must never be committed or shipped to the frontend; read it from an env var in an offline script only.
 
