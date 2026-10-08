@@ -9,6 +9,7 @@ const spikes: SpikesJson = {
   dates: ["2024-01-01", "2024-01-02", "2024-12-22", "2025-01-01"],
   day_type: ["sunday_holiday", "weekday", "sunday_holiday", "sunday_holiday"],
   holiday: ["New Year's Day", null, null, "New Year's Day"],
+  holiday_es: ["Año Nuevo", null, null, "Año Nuevo"],
   actual: [100, 200, 300, 120],
   expected: [null, 190, 222, 130],
   n_comparables: [1, 4, 10, 3],

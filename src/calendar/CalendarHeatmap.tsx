@@ -1,10 +1,13 @@
 import * as Plot from "@observablehq/plot";
 import type { DailyTotals, SpikesJson } from "../data/types";
 import { formatDate, formatInt } from "../lib/format";
+import type { Messages } from "../i18n/en";
+import { type Lang, useLang, useT } from "../i18n/lang";
 import { PlotFigure } from "../ui/PlotFigure";
 import { useSize } from "../ui/useSize";
 import { plotStyle } from "../peaks/plotStyle";
 import { signed, spikeScale } from "./colors";
+import { driverText, holidayName } from "./labels";
 import type { DayCell } from "./shape";
 
 interface Props {
@@ -16,32 +19,32 @@ interface Props {
   theme: string;
 }
 
-const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-function describe(c: DayCell, spikes: SpikesJson, systemByDate: Map<string, number>): string {
+function describe(t: Messages, lang: Lang, c: DayCell, spikes: SpikesJson, systemByDate: Map<string, number>): string {
+  const c_ = t.calendar;
   const head = formatDate(c.date);
-  if (c.status === "missing") return `${head}\nNo data in the source`;
-  if (c.status === "excluded") return `${head}\nExcluded: probable logging failure`;
+  if (c.status === "missing") return `${head}\n${c_.tipMissing}`;
+  if (c.status === "excluded") return `${head}\n${c_.tipExcluded}`;
   const i = c.index;
   const all = systemByDate.get(c.date);
   const lines = [
     head,
-    `Core lines: ${formatInt(spikes.actual[i] ?? 0)} boardings`,
-    all !== undefined ? `All lines: ${formatInt(all)} boardings` : "",
+    c_.tipCore(formatInt(spikes.actual[i] ?? 0)),
+    all !== undefined ? c_.tipAll(formatInt(all)) : "",
   ];
   const expected = spikes.expected[i];
   if (c.status === "ok" && expected)
-    lines.push(`Expected: ${formatInt(expected)}`, `Deviation: ${signed(c.value ?? 0)}`);
-  else lines.push("Too few comparable days for an expected value");
-  const holiday = spikes.holiday[i];
-  if (holiday) lines.push(`Holiday: ${holiday}`);
-  lines.push(`Likely driver (hypothesis): ${spikes.driver_label[i]}`);
+    lines.push(c_.tipExpected(formatInt(expected)), c_.tipDeviation(signed(c.value ?? 0)));
+  else lines.push(c_.tipNoBaseline);
+  const holiday = holidayName(spikes, i, lang);
+  if (holiday) lines.push(c_.tipHoliday(holiday));
+  lines.push(c_.tipDriver(driverText(t, spikes, i, lang)));
   return lines.filter(Boolean).join("\n");
 }
 
 // GitHub-style calendar: weeks as columns, weekdays as rows, color = spike_index
 export function CalendarHeatmap({ cells, spikes, daily, selected, onSelect, theme }: Props) {
+  const t = useT();
+  const { lang } = useLang();
   const [ref, { width }] = useSize<HTMLDivElement>();
   const systemByDate = new Map(daily.dates.map((d, i) => [d, daily.system[i] ?? 0]));
   const firstOfMonth = cells.filter((c) => c.date.endsWith("-01"));
@@ -61,9 +64,14 @@ export function CalendarHeatmap({ cells, spikes, daily, selected, onSelect, them
               marginBottom: 4,
               padding: 0.12,
               style: plotStyle,
-              ariaLabel: "Calendar of daily deviation from expected boardings",
+              ariaLabel: t.calendar.heatLabel,
               x: { axis: null, domain: Array.from({ length: weeks }, (_, i) => i) },
-              y: { domain: [0, 1, 2, 3, 4, 5, 6], tickFormat: (d: number) => DOW[d], tickSize: 0, label: null },
+              y: {
+                domain: [0, 1, 2, 3, 4, 5, 6],
+                tickFormat: (d: number) => t.calendar.weekdays[d],
+                tickSize: 0,
+                label: null,
+              },
               color: spikeScale,
               marks: [
                 Plot.cell(cells, {
@@ -83,13 +91,17 @@ export function CalendarHeatmap({ cells, spikes, daily, selected, onSelect, them
                   x: "week",
                   y: () => 0,
                   dy: -16,
-                  text: (c: DayCell) => MONTHS[c.month - 1],
+                  text: (c: DayCell) => t.calendar.months[c.month - 1],
                   textAnchor: "start",
                   fill: "var(--ink-muted)",
                 }),
                 Plot.tip(
                   cells,
-                  Plot.pointer({ x: "week", y: "dow", title: (c: DayCell) => describe(c, spikes, systemByDate) }),
+                  Plot.pointer({
+                    x: "week",
+                    y: "dow",
+                    title: (c: DayCell) => describe(t, lang, c, spikes, systemByDate),
+                  }),
                 ),
               ],
             });

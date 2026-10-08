@@ -5,6 +5,7 @@ const base = process.argv[2] ?? "http://localhost:5173";
 const out = process.argv[3] ?? ".cache/shots";
 const b = await chromium.launch({ channel: "chrome" });
 const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+await p.addInitScript((l) => localStorage.setItem("lang", l), "en");
 const errors = [];
 p.on("pageerror", (e) => errors.push(e.message));
 p.on("console", (m) => m.type() === "error" && errors.push(m.text()));

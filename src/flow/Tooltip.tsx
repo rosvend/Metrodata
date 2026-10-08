@@ -1,24 +1,26 @@
 import type { LineProps, StationProps } from "../data/types";
-import { MODE_LABELS } from "../lib/lines";
+import { useT } from "../i18n/lang";
 import { formatInt } from "../lib/format";
+import { MODE_LABELS } from "../lib/lines";
 import { describeValue } from "./describe";
 import type { Hover } from "./FlowMap";
+import { LineBadge } from "./LineBadge";
 import { type Metric, hourBand, interpolate, metricValue } from "./metrics";
 import type { FlowLine } from "./model";
-import { LineBadge } from "./LineBadge";
 
 interface Props {
   hover: Hover;
   flow: FlowLine[];
   noData: LineProps[];
   stations: Map<string, StationProps>;
-  t: number;
+  hour: number;
   metric: Metric;
   context: string;
 }
 
-function LineTip({ line, t, metric, context }: { line: FlowLine; t: number; metric: Metric; context: string }) {
-  const raw = interpolate(line.values, t);
+function LineTip({ line, hour, metric, context }: { line: FlowLine; hour: number; metric: Metric; context: string }) {
+  const t = useT();
+  const raw = interpolate(line.values, hour);
   return (
     <>
       <div className="flex items-center gap-2.5">
@@ -28,32 +30,29 @@ function LineTip({ line, t, metric, context }: { line: FlowLine; t: number; metr
           <div className="text-[12px] text-panel-muted">{MODE_LABELS[line.info.mode]}</div>
         </div>
       </div>
-      <div className="mt-2.5 text-[15px] font-semibold">{describeValue(metric, metricValue(raw, metric, line))}</div>
-      {metric !== "boardings" && <div className="text-[13px]">{formatInt(raw)} boardings</div>}
+      <div className="mt-2.5 text-[15px] font-semibold">{describeValue(t, metric, metricValue(raw, metric, line))}</div>
+      {metric !== "boardings" && <div className="text-[13px]">{t.flow.value.boardings(formatInt(raw))}</div>}
       <div className="mt-1 text-[12px] text-panel-muted">
-        {hourBand(t)}, {context}
+        {hourBand(hour)}, {context}
       </div>
-      {line.planned && (
-        <div className="mt-1.5 text-[12px] text-panel-muted">
-          Shape and length are indicative: the source draws the planned Corredor de la 80.
-        </div>
-      )}
+      {line.planned && <div className="mt-1.5 text-[12px] text-panel-muted">{t.flow.tipPlanned}</div>}
     </>
   );
 }
 
-export function Tooltip({ hover, flow, noData, stations, t, metric, context }: Props) {
+export function Tooltip({ hover, flow, noData, stations, hour, metric, context }: Props) {
+  const t = useT();
   const { target } = hover;
   let body: React.ReactNode = null;
   if (target.kind === "line") {
     const line = flow.find((l) => l.id === target.id);
-    if (line) body = <LineTip line={line} t={t} metric={metric} context={context} />;
+    if (line) body = <LineTip line={line} hour={hour} metric={metric} context={context} />;
   } else if (target.kind === "nodata") {
     const line = noData.find((l) => l.id === target.id);
     body = (
       <>
         <div className="font-semibold">{line?.name ?? target.id}</div>
-        <div className="mt-1 text-[13px] text-panel-muted">No ridership data for this line.</div>
+        <div className="mt-1 text-[13px] text-panel-muted">{t.flow.tipNoData}</div>
       </>
     );
   } else {
@@ -61,8 +60,8 @@ export function Tooltip({ hover, flow, noData, stations, t, metric, context }: P
     body = st && (
       <>
         <div className="font-semibold">{st.name}</div>
-        <div className="mt-1 text-[13px] text-panel-muted">Lines {st.lines.join(", ")}</div>
-        <div className="mt-1 text-[12px] text-panel-muted">Ridership is recorded per line, not per station.</div>
+        <div className="mt-1 text-[13px] text-panel-muted">{t.flow.tipLines(st.lines.join(", "))}</div>
+        <div className="mt-1 text-[12px] text-panel-muted">{t.flow.tipStation}</div>
       </>
     );
   }

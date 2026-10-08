@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { DayTypePeaks, PeakStats } from "../data/types";
-import { formatPercent } from "../lib/format";
+import { formatDecimal, formatPercent } from "../lib/format";
 import { lineInfo } from "../lib/lines";
-import { KPI_TEXT } from "../lib/kpiText";
+import { useT } from "../i18n/lang";
 import { LineBadge } from "../flow/LineBadge";
 import { InfoTip } from "../ui/InfoTip";
 
@@ -35,6 +35,7 @@ const SORTS: Record<SortKey, (a: Row, b: Row) => number> = {
 
 export function PeakTable({ peaks, profiles }: { peaks: DayTypePeaks; profiles: Record<string, number[]> }) {
   const [sort, setSort] = useState<SortKey>("share");
+  const t = useT();
   const rows: Row[] = Object.entries(peaks.lines).map(([id, stats]) => ({ id, stats, profile: profiles[id] ?? [] }));
   rows.sort(SORTS[sort]);
 
@@ -61,32 +62,32 @@ export function PeakTable({ peaks, profiles }: { peaks: DayTypePeaks; profiles: 
     <table className="w-full text-[13px] leading-none tabular-nums">
       <thead className="text-[12px] text-ink-muted">
         <tr className="border-b border-rule">
-          {header("line", "Line")}
-          {header("hour", "Peak hour")}
-          {header("share", "Peak share", KPI_TEXT.peak_hour)}
-          {header("ratio", "Peak ÷ avg", KPI_TEXT.peak_to_average)}
+          {header("line", t.peaks.colLine)}
+          {header("hour", t.peaks.colPeakHour)}
+          {header("share", t.peaks.colPeakShare, t.kpi.peak_hour)}
+          {header("ratio", t.peaks.colRatio, t.kpi.peak_to_average)}
           <th scope="col" className="py-1 text-left font-normal">
-            Day
+            {t.peaks.colDay}
           </th>
         </tr>
       </thead>
       <tbody>
         <tr className="border-b border-rule font-semibold">
-          <td className="py-0.5">System</td>
+          <td className="py-0.5">{t.peaks.system}</td>
           <td>{pad(peaks.system.peak_hour.hour)}</td>
           <td>{formatPercent(peaks.system.peak_hour.share)}</td>
-          <td>{peaks.system.peak_to_average_ratio.toFixed(2)}</td>
+          <td>{formatDecimal(peaks.system.peak_to_average_ratio, 2)}</td>
           <td />
         </tr>
         {rows.map((r) => (
           <tr key={r.id} className="h-5 border-b border-rule/60 last:border-0">
             <td className="py-0">
-              <span className="sr-only">Line </span>
+              <span className="sr-only">{t.peaks.lineSr}</span>
               <LineBadge info={lineInfo(r.id)} size="xs" />
             </td>
             <td>{pad(r.stats.peak_hour.hour)}</td>
             <td>{formatPercent(r.stats.peak_hour.share)}</td>
-            <td>{r.stats.peak_to_average_ratio.toFixed(2)}</td>
+            <td>{formatDecimal(r.stats.peak_to_average_ratio, 2)}</td>
             <td>
               <Sparkline values={r.profile} color={lineInfo(r.id).color} />
             </td>

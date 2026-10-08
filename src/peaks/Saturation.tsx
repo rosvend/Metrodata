@@ -1,7 +1,8 @@
 import * as Plot from "@observablehq/plot";
 import type { LineKpis } from "../data/types";
-import { formatCompact, formatInt } from "../lib/format";
+import { formatCompact, formatDate, formatDecimal, formatInt } from "../lib/format";
 import { lineInfo } from "../lib/lines";
+import { useT } from "../i18n/lang";
 import { PlotFigure } from "../ui/PlotFigure";
 import { useSize } from "../ui/useSize";
 import { plotStyle } from "./plotStyle";
@@ -29,6 +30,7 @@ const jitter = (date: string) => {
 
 // Strip plot of each weekday's peak-hour boardings, one row per year, with median and P95 ticks
 export function Saturation({ line, points, byYear, theme }: Props) {
+  const t = useT();
   const [ref, { width }] = useSize<HTMLDivElement>();
   const color = lineInfo(line).color;
   const marks = Object.entries(byYear).flatMap(([y, k]) =>
@@ -47,7 +49,7 @@ export function Saturation({ line, points, byYear, theme }: Props) {
               marginRight: 70,
               marginBottom: 32,
               style: plotStyle,
-              ariaLabel: `Distribution of weekday peak-hour boardings for line ${lineInfo(line).badge} by year`,
+              ariaLabel: t.peaks.satLabel(lineInfo(line).badge),
               fy: { label: null, tickSize: 0, tickFormat: String },
               y: { axis: null, domain: [-0.15, 1.15] },
               x: { grid: true, tickFormat: formatCompact, label: null, ticks: 5 },
@@ -59,7 +61,7 @@ export function Saturation({ line, points, byYear, theme }: Props) {
                   r: 2,
                   fill: color,
                   fillOpacity: 0.55,
-                  title: (d: Point) => `${d.date}: ${formatInt(d.peak)} boardings at ${d.hour}:00`,
+                  title: (d: Point) => t.peaks.satTip(formatDate(d.date), formatInt(d.peak), d.hour),
                   tip: true,
                 }),
                 Plot.ruleX(marks, { x: "median", fy: "year", y1: -0.1, y2: 1.1, stroke: "var(--ink)", strokeWidth: 2 }),
@@ -75,7 +77,7 @@ export function Saturation({ line, points, byYear, theme }: Props) {
                   fy: "year",
                   frameAnchor: "right",
                   dx: 66,
-                  text: (d: { si: number }) => `SI ${d.si.toFixed(2)}`,
+                  text: (d: { si: number }) => `SI ${formatDecimal(d.si, 2)}`,
                   fill: "var(--ink)",
                   fontWeight: 600,
                 }),

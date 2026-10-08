@@ -13,7 +13,7 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
   - Base: white, Outfit font, Metro green #65BC4B, dark panels #111716 with 24 px radius, and the logo at `public/Metro_Medellín_Logo.svg`.
   - Lines use the OFFICIAL line colors (`src/lib/lines.ts`) everywhere, instead of per-mode colors.
   - Green fills take near-black text (white on green fails AA).
-  - Keep the UI language in English until the user says otherwise.
+  - **Language (user, 2026-10-08):** Spanish (es-CO) by default with an ES | EN switch. All UI text lives in `src/i18n/en.ts` and `es.ts` (same shape, checked by TypeScript). Never hard-code UI strings in components. Spanish uses "abordajes" for boardings.
   - Check contrast (AA) for any new color pair.
   - Run `uv run python -m scripts.metro.colorcheck` for new palettes. Colour must never be the only cue: lines always carry their letter.
   - The calendar diverging scale is red → blue (red–green fails for protanopia).
@@ -101,6 +101,7 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 - Phase 6 (calendar and spikes): done. See `docs/calendar.md`. Feria de las Flores dates are external and need verifying.
 - Phase 7 (access map): done. See `docs/access.md`.
 - Phase 8 (polish): done. See `docs/polish.md` and `README.md`. All eight phases are complete.
+- After phase 8: i18n (ES default, EN switch), Metro logo favicon, Vercel prebuilt deploy (`npm run deploy`).
 - **Layout rule (user, 2026-10-08):** each page fits one 1440×900 view without scrolling on desktop. `npm run ui:shots` reports any overflow.
 - **FPS:** measure only against the production build (`vite preview`), with Chrome on Vulkan. That gives 60 fps; dev-server numbers are meaningless.
 - Repo: github.com/rosvend/Metrodata (private), branch `main`.

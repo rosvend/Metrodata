@@ -1,7 +1,6 @@
 import { AnimatePresence } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
-import { pageByPath } from "../app/pages";
 import { useCurrentTheme } from "../app/themeContext";
 import { useFilters } from "../app/useFilters";
 import type { FeedersGeo, KpiReport, LinesGeo, Profiles, StationProps, StationsGeo } from "../data/types";
@@ -15,21 +14,15 @@ import { buildFlowLines } from "../flow/model";
 import { PlaybackBar } from "../flow/PlaybackBar";
 import { Tooltip } from "../flow/Tooltip";
 import { usePlayback } from "../flow/usePlayback";
-import { DAY_TYPE_LABELS, DAY_TYPE_SINGULAR, YEAR_COVERAGE } from "../lib/filters";
+import { useT } from "../i18n/lang";
 import { parseFlowView, setParam } from "../lib/viewParams";
 import { InfoTip } from "../ui/InfoTip";
 import { PageHeader } from "../ui/PageHeader";
 import { ErrorState, Loading } from "../ui/Status";
 
-const PAGE = pageByPath("/");
-
-const METRIC_SENTENCE: Record<Metric, string> = {
-  boardings: "boardings per hour",
-  per_km: "boardings per hour per km of line",
-  share: "each line's share of its own daily boardings",
-};
-
 export function FlowPage() {
+  const t = useT();
+  const page = t.pages["/"];
   const [{ year, dayType }] = useFilters();
   const theme = useCurrentTheme();
   const profiles = useJson<Profiles>("profiles.json");
@@ -74,15 +67,16 @@ export function FlowPage() {
 
   const failed = [profiles, lines].find((r) => r.status === "error");
   const selectedLine = model?.flow.find((l) => l.id === selected);
-  const contextText = `average ${DAY_TYPE_SINGULAR[dayType]}, ${year}`;
+  const contextText = t.flow.context(t.filters.daySingular[dayType], year);
+  const coverage = t.filters.coverage[year];
   const panelProps = selectedLine && {
     line: selectedLine,
     kpis: kpis.status === "ready" ? kpis.data.by_year[String(year)]?.lines[selectedLine.id] : undefined,
     hour: playback.t,
     year,
-    coverage: YEAR_COVERAGE[year],
-    dayLabel: DAY_TYPE_LABELS[dayType],
-    daySingular: DAY_TYPE_SINGULAR[dayType],
+    coverage,
+    dayLabel: t.filters.dayPlural[dayType],
+    daySingular: t.filters.daySingular[dayType],
     theme,
     onClose: () => setSelected(null),
   };
@@ -90,21 +84,21 @@ export function FlowPage() {
   return (
     <div className="flex flex-col gap-4 p-4 sm:p-6 lg:relative lg:block lg:h-full lg:p-4">
       <div className="lg:absolute lg:top-8 lg:left-8 lg:z-10 lg:max-w-[400px] lg:rounded-card lg:bg-surface/95 lg:px-6 lg:py-5 lg:shadow-xl lg:ring-1 lg:ring-rule">
-        <PageHeader title={PAGE.title} lede={PAGE.lede} compact />
+        <PageHeader title={page.title} lede={page.lede} compact />
       </div>
 
       {failed?.status === "error" && <ErrorState message={failed.error} onRetry={failed.retry} />}
-      {!failed && !model && <Loading label="Loading the network" />}
+      {!failed && !model && <Loading label={t.flow.loading} />}
 
       {model && (
         <>
           <section
-            aria-label="Flow map"
+            aria-label={t.flow.mapLabel}
             className="relative h-[62vh] min-h-[380px] overflow-hidden rounded-card bg-soft ring-1 ring-rule lg:absolute lg:inset-4 lg:h-auto"
           >
             {mapError ? (
               <div className="p-6">
-                <ErrorState message={`The map could not be drawn: ${mapError}`} />
+                <ErrorState message={t.common.mapError(mapError)} />
               </div>
             ) : (
               <FlowMap
@@ -130,14 +124,14 @@ export function FlowPage() {
                 flow={model.flow}
                 noData={model.noData.map((f) => f.properties)}
                 stations={stationIndex}
-                t={playback.t}
+                hour={playback.t}
                 metric={metric}
                 context={contextText}
               />
             )}
             {feeders.status === "loading" && (
               <div className="absolute top-3 right-3 rounded-full bg-surface px-3 py-1 text-[13px] shadow">
-                Loading feeder routes…
+                {t.flow.loadingFeeders}
               </div>
             )}
           </section>
@@ -168,8 +162,8 @@ export function FlowPage() {
               <InfoTip
                 tone="panel"
                 placement="above"
-                label="this map"
-                text={`Line width and brightness show ${METRIC_SENTENCE[metric]}, ${contextText} (${YEAR_COVERAGE[year]}). Moving dots are proportional to that value; they are not vehicles. Ridership is recorded per line, so stations show location only. Dashed: Línea O planned alignment (indicative). Grey dashed: Cable Palmitas, no data. Shaded: outside the Valle de Aburrá metro area.`}
+                label={t.flow.readMap}
+                text={t.flow.howToRead(t.flow.metricSentence[metric], contextText, coverage)}
               />
             </div>
           </div>

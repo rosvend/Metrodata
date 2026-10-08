@@ -1,13 +1,13 @@
 import * as Plot from "@observablehq/plot";
 import { formatCompact, formatInt, formatPercent } from "../lib/format";
 import { hourBand } from "../flow/metrics";
+import { useT } from "../i18n/lang";
 import { PlotFigure } from "../ui/PlotFigure";
 import { useSize } from "../ui/useSize";
 import { hourTick, plotStyle } from "../peaks/plotStyle";
 import { SPIKE_RANGE } from "./colors";
 import type { hourlyYoY, monthlyYoY } from "./shape";
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"];
 const YEAR_COLORS: Record<number, string> = {
   2024: "var(--ink-faint)",
   2025: "var(--ink)",
@@ -16,6 +16,8 @@ const YEAR_COLORS: Record<number, string> = {
 
 // Dumbbell per month: one dot per year, joined by a rule
 export function MonthlyTrend({ rows, theme }: { rows: ReturnType<typeof monthlyYoY>; theme: string }) {
+  const t = useT();
+  const months = t.calendar.months;
   const [ref, { width }] = useSize<HTMLDivElement>();
   const dots = rows.flatMap((r) => Object.entries(r.values).map(([y, v]) => ({ month: r.month, year: Number(y), v })));
   const spans = rows.map((r) => ({
@@ -43,12 +45,12 @@ export function MonthlyTrend({ rows, theme }: { rows: ReturnType<typeof monthlyY
               marginLeft: 44,
               marginBottom: 22,
               style: plotStyle,
-              ariaLabel: "Mean daily boardings per month, January to July, by year",
-              x: { type: "band", domain: [1, 2, 3, 4, 5, 6, 7], tickFormat: (m: number) => MONTHS[m - 1], label: null },
+              ariaLabel: t.calendar.monthlyLabel,
+              x: { type: "band", domain: [1, 2, 3, 4, 5, 6, 7], tickFormat: (m: number) => months[m - 1], label: null },
               y: {
                 grid: true,
                 tickFormat: formatCompact,
-                label: "Mean daily boardings",
+                label: t.calendar.monthlyAxis,
                 labelAnchor: "top",
                 zero: false,
               },
@@ -67,7 +69,7 @@ export function MonthlyTrend({ rows, theme }: { rows: ReturnType<typeof monthlyY
                   r: 5,
                   fill: (d: { year: number }) => YEAR_COLORS[d.year],
                   title: (d: { month: number; year: number; v: number }) =>
-                    `${MONTHS[d.month - 1]} ${d.year}: ${formatInt(d.v)} boardings per day`,
+                    t.calendar.monthlyTip(months[d.month - 1] ?? "", d.year, formatInt(d.v)),
                   tip: true,
                 }),
               ],
@@ -81,6 +83,7 @@ export function MonthlyTrend({ rows, theme }: { rows: ReturnType<typeof monthlyY
 
 // Change per hour band, 2026 vs 2025 (Jan–Jul), as diverging bars
 export function HourlyTrend({ rows, theme }: { rows: ReturnType<typeof hourlyYoY>; theme: string }) {
+  const t = useT();
   const [ref, { width }] = useSize<HTMLDivElement>();
   return (
     <div ref={ref}>
@@ -94,12 +97,12 @@ export function HourlyTrend({ rows, theme }: { rows: ReturnType<typeof hourlyYoY
               marginLeft: 44,
               marginBottom: 22,
               style: plotStyle,
-              ariaLabel: "Change in boardings per hour band, January to July 2026 versus 2025",
+              ariaLabel: t.calendar.hourlyLabel,
               x: { type: "band", tickFormat: hourTick, label: null },
               y: {
                 grid: true,
                 tickFormat: (v: number) => formatPercent(v, { signed: true, digits: 0 }),
-                label: "2026 vs 2025",
+                label: t.calendar.hourlyAxis,
                 labelAnchor: "top",
               },
               marks: [

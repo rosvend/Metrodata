@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
+import { useT } from "../i18n/lang";
 import { useDemo } from "./useDemo";
 
 const BUTTON = "rounded-full px-4 py-1.5 text-[14px] ring-1 ring-white/25 hover:bg-white/10 disabled:opacity-40";
@@ -7,6 +8,7 @@ const PRIMARY = "rounded-full bg-green px-5 py-1.5 text-[14px] font-semibold tex
 // Narration strip for the guided tour, docked under the top bar so it never hides the content it describes
 export function DemoBar() {
   const { steps, index, error, go, stop } = useDemo();
+  const d = useT().demo;
   const step = index === null ? undefined : steps[index];
   const last = index !== null && index === steps.length - 1;
   return (
@@ -14,7 +16,7 @@ export function DemoBar() {
       {(step || error) && (
         <motion.section
           key="demo"
-          aria-label="Guided demo"
+          aria-label={d.label}
           data-surface="panel"
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -25,15 +27,13 @@ export function DemoBar() {
           <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-8">
             {error && (
               <p role="alert" className="text-[15px]">
-                The demo could not start: {error}.
+                {d.failed(error)}
               </p>
             )}
             {step && index !== null && (
               <>
                 <div className="shrink-0">
-                  <p className="text-[12px] text-panel-muted">
-                    Step {index + 1} of {steps.length}
-                  </p>
+                  <p className="text-[12px] text-panel-muted">{d.step(index + 1, steps.length)}</p>
                   <ol aria-hidden className="mt-1 flex gap-1">
                     {steps.map((s, i) => (
                       <li
@@ -57,16 +57,16 @@ export function DemoBar() {
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <div className="flex gap-2">
                     <button type="button" onClick={stop} className={BUTTON}>
-                      End demo
+                      {d.end}
                     </button>
                     <button type="button" onClick={() => go(index - 1)} disabled={index === 0} className={BUTTON}>
-                      Back
+                      {d.back}
                     </button>
                     <button type="button" onClick={last ? stop : () => go(index + 1)} className={PRIMARY}>
-                      {last ? "Finish" : "Next"}
+                      {last ? d.finish : d.next}
                     </button>
                   </div>
-                  <p className="text-[11px] text-panel-muted">← and → to move, Esc to leave</p>
+                  <p className="text-[11px] text-panel-muted">{d.keys}</p>
                 </div>
               </>
             )}

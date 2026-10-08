@@ -1,7 +1,9 @@
 import type { SpikesJson } from "../data/types";
 import { formatDate } from "../lib/format";
 import { SPIKE_RANGE, signed } from "./colors";
+import { useLang, useT } from "../i18n/lang";
 import { DriverTag } from "./DriverTag";
+import { driverText } from "./labels";
 import type { RankedDay } from "./shape";
 
 interface Props {
@@ -20,6 +22,8 @@ function List({
   color,
   max,
 }: Omit<Props, "ranked"> & { title: string; days: RankedDay[]; color: string; max: number }) {
+  const t = useT();
+  const { lang } = useLang();
   return (
     <div>
       <h3 className="mb-1 text-[13px] font-semibold text-ink-muted">{title}</h3>
@@ -44,7 +48,7 @@ function List({
                 {signed(d.value)}
               </span>
               <span className="min-w-0">
-                <DriverTag label={spikes.driver_label[d.index] ?? ""} />
+                <DriverTag label={driverText(t, spikes, d.index, lang)} none={spikes.driver[d.index] === "none"} />
               </span>
             </button>
           </li>
@@ -55,18 +59,19 @@ function List({
 }
 
 export function RankedDays({ ranked, spikes, selected, onSelect }: Props) {
+  const t = useT();
   const max = Math.max(...[...ranked.spikes, ...ranked.dips].map((d) => Math.abs(d.value)), 1);
   return (
     <div className="space-y-3">
       <List
-        title="Highest above expected"
+        title={t.calendar.above}
         days={ranked.spikes}
         color={SPIKE_RANGE[2] ?? ""}
         max={max}
         {...{ spikes, selected, onSelect }}
       />
       <List
-        title="Furthest below expected"
+        title={t.calendar.below}
         days={ranked.dips}
         color={SPIKE_RANGE[0] ?? ""}
         max={max}

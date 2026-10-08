@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import type { DataQuality } from "../data/types";
 import { useJson } from "../data/useJson";
+import { useT } from "../i18n/lang";
 import { AboutContent } from "./AboutContent";
 
 // Native <dialog> gives focus trapping, Escape to close and an inert background
@@ -30,6 +31,7 @@ export function AboutDrawer({ open, onClose }: { open: boolean; onClose: () => v
 
 function Panel({ onClose }: { onClose: () => void }) {
   const quality = useJson<DataQuality>("data_quality.json");
+  const t = useT();
   return (
     <motion.div
       initial={{ x: 32, opacity: 0 }}
@@ -39,20 +41,17 @@ function Panel({ onClose }: { onClose: () => void }) {
     >
       <div className="flex items-start justify-between gap-4">
         <h2 id="about-title" className="text-[1.9rem] leading-tight font-bold tracking-[-0.02em]">
-          About the data
+          {t.about.title}
         </h2>
         <button
           type="button"
           onClick={onClose}
           className="rounded-full px-4 py-1.5 text-[15px] text-ink ring-1 ring-ink/70 hover:bg-soft"
         >
-          Close
+          {t.common.close}
         </button>
       </div>
-      <p className="mt-2 mb-7 max-w-[60ch] text-[15px] leading-relaxed text-ink-muted">
-        Hourly boardings for the 12 lines of the Metro de Medellín system, with station locations and line shapes from
-        the system's open data.
-      </p>
+      <p className="mt-2 mb-7 max-w-[60ch] text-[15px] leading-relaxed text-ink-muted">{t.about.intro}</p>
       <AboutContent quality={quality} />
     </motion.div>
   );

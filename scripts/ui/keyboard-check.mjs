@@ -5,6 +5,7 @@ const base = process.argv[2] ?? "http://localhost:5173";
 const b = await chromium.launch({ channel: "chrome" });
 for (const path of ["/", "/peaks", "/calendar", "/access"]) {
   const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+  await p.addInitScript((l) => localStorage.setItem("lang", l), "en");
   await p.goto(base + path);
   await p.locator("h1").first().waitFor();
   await p.waitForTimeout(1500);

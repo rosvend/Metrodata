@@ -1,13 +1,15 @@
+import { useT } from "../i18n/lang";
 import type { Theme } from "../lib/theme";
 
 export function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }) {
   const next = theme === "dark" ? "light" : "dark";
+  const t = useT();
   return (
     <button
       type="button"
       onClick={onToggle}
-      aria-label={`Switch to ${next} theme`}
-      title={`Switch to ${next} theme`}
+      aria-label={t.shell.theme(next)}
+      title={t.shell.theme(next)}
       className="grid size-10 place-items-center rounded-full text-ink ring-1 ring-ink/70 hover:bg-soft"
     >
       <svg viewBox="0 0 20 20" className="size-[18px]" aria-hidden>

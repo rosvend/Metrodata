@@ -6,6 +6,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AttributionControl, Map as MapView, type MapRef, useControl } from "react-map-gl/maplibre";
+import { useT } from "../i18n/lang";
 import type { Theme } from "../lib/theme";
 import { type ContextData, contextLayers, labelLayer } from "./context";
 
@@ -63,6 +64,7 @@ function untabOverlayCanvas(container: HTMLElement): () => void {
 // MapLibre basemap + deck.gl overlay with the Valle de Aburrá context drawn below and labels above `layers`
 export function BaseMap({ bounds, padding, layers, context, theme, onClick, onError, flyTo }: Props) {
   const mapRef = useRef<MapRef>(null);
+  const t = useT();
   const reduced = useReducedMotion() ?? false;
   // A deep link can ask for a flight before the style has loaded; wait for it
   const [loaded, setLoaded] = useState(false);
@@ -90,7 +92,7 @@ export function BaseMap({ bounds, padding, layers, context, theme, onClick, onEr
         style={{ width: "100%", height: "100%" }}
         attributionControl={false}
         dragRotate={false}
-        onError={(e) => onError(e.error?.message ?? "The map could not be drawn")}
+        onError={(e) => onError(e.error?.message ?? t.common.mapError(""))}
         onLoad={() => setLoaded(true)}
       >
         <AttributionControl position="top-right" compact />

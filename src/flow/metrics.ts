@@ -1,11 +1,5 @@
 export type Metric = "boardings" | "per_km" | "share";
 
-export const METRIC_LABELS: Record<Metric, string> = {
-  boardings: "Boardings",
-  per_km: "Per km",
-  share: "Share of day",
-};
-
 const FIRST = 4;
 const LAST = 23;
 const MIN_WIDTH = 2;

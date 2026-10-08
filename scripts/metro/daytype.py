@@ -3,15 +3,18 @@ from functools import cache
 import holidays
 import pandas as pd
 
+# English names are the default in outputs; Spanish names are published alongside for the UI
+DEFAULT_LANGUAGE = "en_US"
+
 
 @cache
-def _colombia(year: int) -> holidays.HolidayBase:
-    return holidays.Colombia(years=year)
+def _colombia(year: int, language: str) -> holidays.HolidayBase:
+    return holidays.Colombia(years=year, language=language)
 
 
-def holiday_name(iso_date: str) -> str | None:
+def holiday_name(iso_date: str, language: str = DEFAULT_LANGUAGE) -> str | None:
     d = pd.Timestamp(iso_date).date()
-    return _colombia(d.year).get(d)
+    return _colombia(d.year, language).get(d)
 
 
 def day_type(iso_date: str) -> str:

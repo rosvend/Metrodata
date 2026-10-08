@@ -1,13 +1,16 @@
 import * as Plot from "@observablehq/plot";
 import type { SpikeProfiles, SpikesJson } from "../data/types";
-import { DAY_TYPE_SINGULAR } from "../lib/filters";
-import { formatCompact, formatDate, formatInt } from "../lib/format";
 import { hourBand } from "../flow/metrics";
+import { useLang, useT } from "../i18n/lang";
+import { formatCompact, formatDate, formatInt } from "../lib/format";
+import { hourTick, plotStyle } from "../peaks/plotStyle";
 import { PlotFigure } from "../ui/PlotFigure";
 import { useSize } from "../ui/useSize";
-import { hourTick, plotStyle } from "../peaks/plotStyle";
 import { signed } from "./colors";
 import { DriverTag } from "./DriverTag";
+import { driverText, holidayName } from "./labels";
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 interface Props {
   date: string;
@@ -18,14 +21,19 @@ interface Props {
 
 // One day's hourly boardings (core lines) against the expected profile of its comparable days
 export function DayDetail({ date, spikes, profiles, theme }: Props) {
+  const t = useT();
+  const { lang } = useLang();
+  const c = t.calendar;
   const [ref, { width }] = useSize<HTMLDivElement>();
   const i = spikes.dates.indexOf(date);
   const p = profiles.dates.indexOf(date);
-  if (i < 0 || p < 0) return <p className="text-ink-muted">No core-line data for {formatDate(date)}.</p>;
+  if (i < 0 || p < 0) return <p className="text-ink-muted">{c.noCoreData(formatDate(date))}</p>;
 
   const actual = profiles.actual[p] ?? [];
   const expected = profiles.expected[p];
   const value = spikes.spike_index[i];
+  const expectedTotal = spikes.expected[i];
+  const holiday = holidayName(spikes, i, lang);
   const rows = actual.map((a, k) => ({ h: k + 4, a, e: expected?.[k] ?? null }));
 
   return (
@@ -34,8 +42,8 @@ export function DayDetail({ date, spikes, profiles, theme }: Props) {
         <div>
           <div className="text-[17px] font-semibold">{formatDate(date)}</div>
           <div className="text-[13px] text-ink-muted">
-            {DAY_TYPE_SINGULAR[spikes.day_type[i] ?? "weekday"]}
-            {spikes.holiday[i] ? `, ${spikes.holiday[i]}` : ""}
+            {capitalize(t.filters.daySingular[spikes.day_type[i] ?? "weekday"])}
+            {holiday ? `, ${holiday}` : ""}
           </div>
         </div>
         <div className="text-right">
@@ -45,12 +53,11 @@ export function DayDetail({ date, spikes, profiles, theme }: Props) {
             {value === null || value === undefined ? "n/a" : signed(value)}
           </div>
           <div className="text-[12px] text-ink-muted tabular-nums">
-            {formatInt(spikes.actual[i] ?? 0)} vs {spikes.expected[i] ? formatInt(spikes.expected[i] ?? 0) : "no"}{" "}
-            expected
+            {c.versusExpected(formatInt(spikes.actual[i] ?? 0), expectedTotal ? formatInt(expectedTotal) : null)}
           </div>
         </div>
       </div>
-      <DriverTag label={spikes.driver_label[i] ?? ""} />
+      <DriverTag label={driverText(t, spikes, i, lang)} none={spikes.driver[i] === "none"} />
       {width > 0 && (
         <PlotFigure
           deps={[date, width, theme]}
@@ -61,9 +68,9 @@ export function DayDetail({ date, spikes, profiles, theme }: Props) {
               marginLeft: 40,
               marginBottom: 22,
               style: plotStyle,
-              ariaLabel: `Hourly boardings on ${date} compared with the expected profile`,
+              ariaLabel: c.dayLabel(formatDate(date)),
               x: { domain: [4, 23], ticks: [4, 8, 12, 16, 20], tickFormat: hourTick, label: null },
-              y: { grid: true, tickFormat: formatCompact, label: "Boardings per hour", labelAnchor: "top" },
+              y: { grid: true, tickFormat: formatCompact, label: t.peaks.perHour, labelAnchor: "top" },
               marks: [
                 expected
                   ? Plot.areaY(rows, {
@@ -90,8 +97,8 @@ export function DayDetail({ date, spikes, profiles, theme }: Props) {
                     x: "h",
                     y: "a",
                     title: (r: { h: number; a: number; e: number | null }) =>
-                      `${hourBand(r.h)}\nActual: ${formatInt(r.a)}` +
-                      (r.e !== null ? `\nExpected: ${formatInt(r.e)}` : ""),
+                      `${hourBand(r.h)}\n${c.tipActual(formatInt(r.a))}` +
+                      (r.e !== null ? `\n${c.tipExpected(formatInt(r.e))}` : ""),
                   }),
                 ),
               ],
@@ -100,8 +107,7 @@ export function DayDetail({ date, spikes, profiles, theme }: Props) {
         />
       )}
       <p className="text-[12px] text-ink-faint">
-        Solid: this day. Dashed: median of {spikes.n_comparables[i]} comparable days (same weekday and day type, ±
-        {spikes.window_days} days). Core lines {spikes.lines_used.join(", ")}.
+        {c.dayNote(spikes.n_comparables[i] ?? 0, spikes.window_days, spikes.lines_used.join(", "))}
       </p>
     </div>
   );

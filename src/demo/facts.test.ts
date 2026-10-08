@@ -33,7 +33,9 @@ const kpis = {
 const spikes = {
   dates: ["2024-12-22", "2026-06-21", "2025-01-01"],
   spike_index: [35.06, -64.81, null],
-  driver_label: ["Christmas lights", "Election day", "Public holiday"],
+  driver: ["christmas", "election", "holiday"],
+  holiday: [null, null, "New Year's Day"],
+  holiday_es: [null, null, "Año Nuevo"],
 } as unknown as SpikesJson;
 
 const access = {
@@ -48,8 +50,14 @@ it("derives every narrated number from the data", () => {
   expect(f.lineAShare).toBe(0.6488);
   expect(f.lineAP95AboveMedian).toBeCloseTo(0.056, 3);
   expect(f.cablePeakHour).toBe(5);
-  expect(f.topSpike).toEqual({ date: "2024-12-22", value: 35.06, label: "Christmas lights" });
-  expect(f.topDip).toEqual({ date: "2026-06-21", value: -64.81, label: "Election day" });
+  expect(f.topSpike).toEqual({
+    date: "2024-12-22",
+    value: 35.06,
+    driver: "christmas",
+    holiday: null,
+    holiday_es: null,
+  });
+  expect(f.topDip).toMatchObject({ date: "2026-06-21", value: -64.81, driver: "election" });
   expect(f.barriosFully).toBe(2);
   expect(f.pobladoArea15).toBe(2.7);
   expect(f.growth2026).toBe(-0.04);

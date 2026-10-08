@@ -4,24 +4,6 @@ export type Year = (typeof YEARS)[number];
 export const DAY_TYPES = ["weekday", "saturday", "sunday_holiday"] as const;
 export type DayType = (typeof DAY_TYPES)[number];
 
-export const YEAR_COVERAGE: Record<Year, string> = {
-  2024: "Jan–Dec",
-  2025: "Jan–Sep",
-  2026: "Jan–Jul",
-};
-
-export const DAY_TYPE_LABELS: Record<DayType, string> = {
-  weekday: "Weekdays",
-  saturday: "Saturdays",
-  sunday_holiday: "Sundays & holidays",
-};
-
-export const DAY_TYPE_SINGULAR: Record<DayType, string> = {
-  weekday: "weekday",
-  saturday: "Saturday",
-  sunday_holiday: "Sunday or holiday",
-};
-
 export interface Filters {
   year: Year;
   dayType: DayType;

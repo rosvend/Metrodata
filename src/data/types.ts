@@ -135,6 +135,7 @@ export interface SpikesJson {
   dates: string[];
   day_type: DayTypeKey[];
   holiday: (string | null)[];
+  holiday_es: (string | null)[];
   actual: number[];
   expected: (number | null)[];
   n_comparables: number[];
@@ -155,6 +156,7 @@ export interface DailyTotals {
   dates: string[];
   day_type: DayTypeKey[];
   holiday: (string | null)[];
+  holiday_es: (string | null)[];
   excluded: boolean[];
   system: number[];
   lines: Record<string, (number | null)[]>;

@@ -1,6 +1,7 @@
 import type { AccessSummary, IsochroneStats, IsochronesGeo, StationsGeo } from "../data/types";
 import { LineBadge } from "../flow/LineBadge";
-import { formatPercent } from "../lib/format";
+import { useT } from "../i18n/lang";
+import { formatDecimal, formatInt, formatPercent } from "../lib/format";
 import { MODE_LABELS, type Mode, lineInfo } from "../lib/lines";
 import { BAND_HEX } from "./colors";
 
@@ -18,18 +19,20 @@ interface Props {
 // Below this, two 15-minute areas share only a sliver of street
 const SLIGHT_KM2 = 0.05;
 
-const km = (meters: number) => (meters >= 1000 ? `${(meters / 1000).toFixed(1)} km` : `${meters} m`);
+const distance = (meters: number) =>
+  meters >= 1000 ? `${formatDecimal(meters / 1000, 1)} km` : `${formatInt(meters)} m`;
 
 export function StationPanel({ station, iso, stats, nearest, names, onStation }: Props) {
+  const a = useT().access;
   const p = station.properties;
   const areas = iso.features
     .filter((f) => f.properties.station_id === p.id)
-    .sort((a, b) => a.properties.minutes - b.properties.minutes);
+    .sort((x, y) => x.properties.minutes - y.properties.minutes);
   const overlapKm2 = new Map(stats?.neighbours.map((n) => [n.station_id, n.overlap_km2]));
   const overlapNote = (id: string) => {
-    const a = overlapKm2.get(id);
-    if (a === undefined) return "";
-    return a < SLIGHT_KM2 ? ", walking areas just touch" : ", walking areas overlap";
+    const km2 = overlapKm2.get(id);
+    if (km2 === undefined) return "";
+    return km2 < SLIGHT_KM2 ? a.touch : a.overlap;
   };
   return (
     <div className="space-y-4">
@@ -46,7 +49,7 @@ export function StationPanel({ station, iso, stats, nearest, names, onStation }:
       </div>
 
       <section>
-        <h3 className="text-[14px] font-semibold">Area reachable on foot</h3>
+        <h3 className="text-[14px] font-semibold">{a.reachable}</h3>
         <dl className="mt-1.5 grid grid-cols-3 gap-2">
           {areas.map((f) => (
             <div key={f.properties.minutes} className="rounded-2xl bg-surface px-3 py-2 ring-1 ring-rule">
@@ -56,24 +59,25 @@ export function StationPanel({ station, iso, stats, nearest, names, onStation }:
                   className="size-2.5 rounded-full"
                   style={{ background: BAND_HEX[f.properties.minutes] }}
                 />
-                {f.properties.minutes} min
+                {a.min(f.properties.minutes)}
               </dt>
-              <dd className="text-[18px] font-semibold tabular-nums">{f.properties.area_km2.toFixed(2)} km²</dd>
+              <dd className="text-[18px] font-semibold tabular-nums">{formatDecimal(f.properties.area_km2, 2)} km²</dd>
             </div>
           ))}
         </dl>
         {stats && (
           <p className="mt-2 text-[13px] text-ink-muted">
-            {stats.overlap_share > 0 && stats.overlap_share < 0.01
-              ? "Under 1%"
-              : formatPercent(stats.overlap_share, { digits: 0 })}{" "}
-            of the 15-minute area is also within 15 minutes of another station.
+            {a.overlapShare(
+              stats.overlap_share > 0 && stats.overlap_share < 0.01
+                ? a.underOne
+                : formatPercent(stats.overlap_share, { digits: 0 }),
+            )}
           </p>
         )}
       </section>
 
       <section>
-        <h3 className="text-[14px] font-semibold">Nearest stations</h3>
+        <h3 className="text-[14px] font-semibold">{a.nearest}</h3>
         <ul className="mt-1 space-y-0.5">
           {nearest.map((n) => (
             <li key={n.station_id}>
@@ -84,7 +88,8 @@ export function StationPanel({ station, iso, stats, nearest, names, onStation }:
               >
                 <span>{names.get(n.station_id) ?? n.station_id}</span>
                 <span className="text-[13px] text-ink-muted tabular-nums">
-                  {km(n.distance_m)} straight line{overlapNote(n.station_id)}
+                  {a.straightLine(distance(n.distance_m))}
+                  {overlapNote(n.station_id)}
                 </span>
               </button>
             </li>
@@ -92,12 +97,7 @@ export function StationPanel({ station, iso, stats, nearest, names, onStation }:
         </ul>
       </section>
 
-      {stats && (
-        <p className="text-[12px] text-ink-faint">
-          Contours start from the street point nearest the station ({stats.snap_m.toFixed(0)} m away). Station entrances
-          are not in the data, so edges are approximate by tens of metres.
-        </p>
-      )}
+      {stats && <p className="text-[12px] text-ink-faint">{a.snapNote(formatInt(stats.snap_m))}</p>}
     </div>
   );
 }

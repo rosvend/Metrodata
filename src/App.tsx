@@ -18,7 +18,7 @@ export function App() {
           <Route
             path="/"
             element={
-              <Suspense fallback={<Loading label="Loading the map" />}>
+              <Suspense fallback={<Loading />}>
                 <FlowPage />
               </Suspense>
             }
@@ -26,7 +26,7 @@ export function App() {
           <Route
             path="/peaks"
             element={
-              <Suspense fallback={<Loading label="Loading charts" />}>
+              <Suspense fallback={<Loading />}>
                 <PeaksPage />
               </Suspense>
             }
@@ -34,7 +34,7 @@ export function App() {
           <Route
             path="/calendar"
             element={
-              <Suspense fallback={<Loading label="Loading the calendar" />}>
+              <Suspense fallback={<Loading />}>
                 <CalendarPage />
               </Suspense>
             }
@@ -42,7 +42,7 @@ export function App() {
           <Route
             path="/access"
             element={
-              <Suspense fallback={<Loading label="Loading the access map" />}>
+              <Suspense fallback={<Loading />}>
                 <AccessPage />
               </Suspense>
             }

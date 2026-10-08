@@ -4,6 +4,7 @@ import { Outlet } from "react-router";
 import { DemoBar } from "../demo/DemoBar";
 import { DemoProvider } from "../demo/DemoContext";
 import { AboutDrawer } from "./AboutDrawer";
+import { useT } from "../i18n/lang";
 import { ThemeContext } from "./themeContext";
 import { TopBar } from "./TopBar";
 import { useTheme } from "./useTheme";
@@ -11,6 +12,7 @@ import { useTheme } from "./useTheme";
 export function AppShell() {
   const [theme, toggleTheme] = useTheme();
   const [aboutOpen, setAboutOpen] = useState(false);
+  const t = useT();
   return (
     <ThemeContext value={theme}>
       <MotionConfig reducedMotion="user">
@@ -19,7 +21,7 @@ export function AppShell() {
             href="#main"
             className="sr-only z-30 rounded-full bg-green px-4 py-2 font-semibold text-metro-ink focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
           >
-            Skip to content
+            {t.shell.skip}
           </a>
           {/* On large screens the shell is exactly one viewport tall; pages scroll inside main */}
           <div className="flex min-h-dvh flex-col lg:h-dvh">

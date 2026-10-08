@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderIn } from "../test/renderIn";
 import { describe, expect, it } from "vitest";
 import type { DataQuality } from "../data/types";
 import { AboutContent } from "./AboutContent";
@@ -33,22 +34,31 @@ const quality: DataQuality = {
 
 describe("AboutContent", () => {
   it("always states the core limitations", () => {
-    render(<AboutContent quality={{ status: "loading" }} />);
+    renderIn("en", <AboutContent quality={{ status: "loading" }} />);
     expect(screen.getByText(/no station-level or origin–destination data/i)).toBeInTheDocument();
     expect(screen.getByText(/boardings, not passengers/i)).toBeInTheDocument();
     expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("lists data checks once loaded", () => {
-    render(<AboutContent quality={{ status: "ready", data: quality }} />);
+    renderIn("en", <AboutContent quality={{ status: "ready", data: quality }} />);
     expect(screen.getByText(/2024-02-20/)).toBeInTheDocument();
     expect(screen.getByText(/2024-01-15/)).toBeInTheDocument();
     expect(screen.getByText(/50 of 50 stations/)).toBeInTheDocument();
     expect(screen.getByText(/7 Oct 2026/)).toBeInTheDocument();
   });
 
+  it("speaks Spanish by default", () => {
+    renderIn("es", <AboutContent quality={{ status: "ready", data: quality }} />);
+    expect(screen.getByText(/abordajes, no pasajeros/i)).toBeInTheDocument();
+    expect(screen.getByText(/se excluye de todas las medidas/)).toBeInTheDocument();
+  });
+
   it("shows an error with retry", () => {
-    render(<AboutContent quality={{ status: "error", error: "x could not be loaded (HTTP 404)", retry: () => {} }} />);
+    renderIn(
+      "en",
+      <AboutContent quality={{ status: "error", error: "x could not be loaded (HTTP 404)", retry: () => {} }} />,
+    );
     expect(screen.getByRole("alert")).toHaveTextContent("HTTP 404");
   });
 });

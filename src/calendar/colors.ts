@@ -1,3 +1,5 @@
+import { formatPercent } from "../lib/format";
+
 // Diverging scale for spike_index: red dips, neutral at zero, Metro blue spikes (clamped at ±40%).
 // Red–blue stays distinct for protan, deutan and tritan viewers (see scripts/metro/colorcheck.py); red–green did not.
 export const SPIKE_DOMAIN = [-40, 0, 40];
@@ -10,4 +12,4 @@ export const spikeScale = {
   clamp: true,
 };
 
-export const signed = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(1)}%`;
+export const signed = (v: number) => formatPercent(v / 100, { signed: true });

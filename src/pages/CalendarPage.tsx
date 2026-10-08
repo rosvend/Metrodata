@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
-import { pageByPath } from "../app/pages";
 import { useCurrentTheme } from "../app/themeContext";
 import { useFilters } from "../app/useFilters";
 import { CalendarHeatmap } from "../calendar/CalendarHeatmap";
@@ -12,22 +11,23 @@ import { HourlyTrend, MonthlyTrend } from "../calendar/Trend";
 import type { DailyTotals, KpiReport, Profiles, SpikeProfiles, SpikesJson } from "../data/types";
 import { useJson } from "../data/useJson";
 import { dateForYear, parseDate, withDate } from "../lib/dateParam";
-import { DAY_TYPE_LABELS, YEAR_COVERAGE } from "../lib/filters";
+import { useT } from "../i18n/lang";
 import { formatPercent } from "../lib/format";
 import { ChartCard } from "../ui/ChartCard";
 import { PageHeader } from "../ui/PageHeader";
 import { Segmented } from "../ui/Segmented";
 import { ErrorState, Loading } from "../ui/Status";
 
-const PAGE = pageByPath("/calendar");
 const COVERAGE: Record<number, [string, string]> = {
   2024: ["2024-01-01", "2024-12-31"],
   2025: ["2025-01-01", "2025-09-30"],
   2026: ["2026-01-01", "2026-07-31"],
 };
-const LFL_NOTE = "Like-for-like: January–July only, because October–December 2025 is missing and 2026 ends in July.";
 
 export function CalendarPage() {
+  const t = useT();
+  const page = t.pages["/calendar"];
+  const c = t.calendar;
   const [{ year, dayType }] = useFilters();
   const [params, setParams] = useSearchParams();
   const theme = useCurrentTheme();
@@ -69,31 +69,29 @@ export function CalendarPage() {
   return (
     <div className="mx-auto max-w-[1440px] space-y-3 px-4 py-3 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <PageHeader title={PAGE.title} lede={PAGE.lede} compact />
-        <p className="max-w-[46ch] text-right text-[13px] text-ink-muted">
-          Core lines A, B, T-A, 1, 2, O and P. Each day is compared with the same weekday and day type within ±35 days.
-        </p>
+        <PageHeader title={page.title} lede={page.lede} compact />
+        <p className="max-w-[46ch] text-right text-[13px] text-ink-muted">{c.coreNote}</p>
       </div>
 
       {failed?.status === "error" && <ErrorState message={failed.error} onRetry={failed.retry} />}
-      {!failed && !ready && <Loading label="Loading the calendar" />}
+      {!failed && !ready && <Loading label={c.loading} />}
 
       {ready && (
         <div className="grid gap-3 lg:grid-cols-12">
           <ChartCard
             className="lg:col-span-12"
-            title={`${year}, day by day`}
-            subtitle={`Data covers ${YEAR_COVERAGE[year]}. Click a day to see its hours. All day types are shown: each is compared only with its own kind.`}
-            info="Deviation = core-line boardings ÷ expected − 1. Expected is the median of the same weekday and day type within ±35 days, excluding the day itself. Grey outline: too few comparable days (left blank). Dashed red: excluded day (probable logging failure). Empty: no data in the source."
+            title={c.yearTitle(year)}
+            subtitle={c.yearSubtitle(t.filters.coverage[year])}
+            info={c.info}
             controls={
-              <div className="flex items-center gap-2 text-[12px] text-ink-muted" aria-label="Color legend">
-                <span>−40% or less</span>
+              <div className="flex items-center gap-2 text-[12px] text-ink-muted" aria-label={c.legendLabel}>
+                <span>{c.legendLow}</span>
                 <span
                   aria-hidden
                   className="h-2.5 w-28 rounded-full"
                   style={{ background: `linear-gradient(90deg, ${SPIKE_RANGE.join(", ")})` }}
                 />
-                <span>+40% or more</span>
+                <span>{c.legendHigh}</span>
               </div>
             }
           >
@@ -107,20 +105,16 @@ export function CalendarPage() {
             />
           </ChartCard>
 
-          <ChartCard
-            className="lg:col-span-4"
-            title="Biggest spikes and dips"
-            subtitle={`${year}. Drivers are hypotheses to verify, not causes.`}
-          >
+          <ChartCard className="lg:col-span-4" title={c.rankedTitle} subtitle={c.rankedSubtitle(year)}>
             <RankedDays ranked={ranked} spikes={spikes.data} selected={selected} onSelect={select} />
           </ChartCard>
 
           <ChartCard
             className="lg:col-span-4"
-            title="The day against its expected hours"
+            title={c.dayTitle}
             controls={
               <label className="flex items-center gap-2 text-[13px] text-ink-muted">
-                Go to date
+                {c.goToDate}
                 <input
                   type="date"
                   min={COVERAGE[year]?.[0]}
@@ -135,32 +129,32 @@ export function CalendarPage() {
             {selected ? (
               <DayDetail date={selected} spikes={spikes.data} profiles={dayProfiles.data} theme={theme} />
             ) : (
-              <p className="text-ink-muted">Pick a day in the calendar or the list.</p>
+              <p className="text-ink-muted">{c.pickDay}</p>
             )}
           </ChartCard>
 
           <ChartCard
             className="lg:col-span-4"
-            title="Like-for-like trend"
-            subtitle={LFL_NOTE}
+            title={c.trendTitle}
+            subtitle={c.lflNote}
             controls={
               <Segmented<"monthly" | "hourly">
-                legend="View"
+                legend={c.view}
                 value={trend}
                 onChange={setTrend}
                 options={[
-                  { value: "monthly", label: "By month" },
-                  { value: "hourly", label: "By hour" },
+                  { value: "monthly", label: c.byMonth },
+                  { value: "hourly", label: c.byHour },
                 ]}
               />
             }
           >
             <p className="mb-1 text-[13px]">
-              Mean daily boardings, Jan–Jul:{" "}
+              {c.lflHeadline}{" "}
               {Object.entries(kpis.data.like_for_like_growth).map(([y, g], k) => (
                 <span key={y} className="font-semibold tabular-nums">
                   {k > 0 ? ", " : ""}
-                  {y} vs {g.vs} {formatPercent(g.system, { signed: true })}
+                  {c.lflPair(y, g.vs, formatPercent(g.system, { signed: true }))}
                 </span>
               ))}
             </p>
@@ -168,10 +162,7 @@ export function CalendarPage() {
               <MonthlyTrend rows={monthlyYoY(kpis.data.monthly)} theme={theme} />
             ) : (
               <>
-                <p className="text-[12px] text-ink-muted">
-                  {DAY_TYPE_LABELS[dayType]}, average boardings per hour band, 2026 vs 2025. After 22:00 the base is
-                  tiny, so percentages swing widely.
-                </p>
+                <p className="text-[12px] text-ink-muted">{c.hourlyNote(t.filters.dayPlural[dayType])}</p>
                 <HourlyTrend
                   rows={hourlyYoY(
                     profiles.data.periods["2025_jan_jul"]?.[dayType]?.system ?? [],

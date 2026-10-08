@@ -7,7 +7,6 @@ import { barrioKey } from "../access/keys";
 import { PointResult } from "../access/PointResult";
 import { StationPanel } from "../access/StationPanel";
 import { useGrow } from "../access/useGrow";
-import { pageByPath } from "../app/pages";
 import { useCurrentTheme } from "../app/themeContext";
 import type {
   AccessFilter,
@@ -26,28 +25,23 @@ import { BaseMap } from "../map/BaseMap";
 import { useContextLayers } from "../map/context";
 import { type FlyTarget, overlayPadding } from "../map/view";
 import { parseAccessView, setParam } from "../lib/viewParams";
+import { useT } from "../i18n/lang";
 import { InfoTip } from "../ui/InfoTip";
 import { PageHeader } from "../ui/PageHeader";
 import { Segmented } from "../ui/Segmented";
 import { ErrorState, Loading } from "../ui/Status";
 
-const PAGE = pageByPath("/access");
 // Centre of the network, used when nothing specific is selected
 const OVERVIEW: [number, number] = [-75.575, 6.245];
 type Mode = "station" | "coverage";
 type BarriosGeo = FeatureCollection<AreaGeometry, { nombre: string; codigo_comuna: number }>;
 
-const FILTERS: { value: AccessFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "metro", label: "Metro" },
-  { value: "tranvia", label: "Tranvía" },
-  { value: "metrocable", label: "Metrocable" },
-];
-
-const METHOD =
-  "Walking areas were computed offline with Valhalla on OpenStreetMap streets at 4.8 km/h, for the 50 main stations (Metro, Tranvía, Metrocable and the main Metroplús stations). They follow streets and paths, not straight lines.";
+const FILTERS: AccessFilter[] = ["all", "metro", "tranvia", "metrocable"];
 
 export function AccessPage() {
+  const t = useT();
+  const page = t.pages["/access"];
+  const a = t.access;
   const theme = useCurrentTheme();
   const [params, setParams] = useSearchParams();
   const stations = useJson<StationsGeo>("stations.geojson");
@@ -160,21 +154,21 @@ export function AccessPage() {
   return (
     <div className="flex flex-col gap-4 p-4 sm:p-6 lg:relative lg:block lg:h-full lg:p-4">
       <div className="lg:absolute lg:top-8 lg:left-8 lg:z-10 lg:max-w-[380px] lg:rounded-card lg:bg-surface/95 lg:px-6 lg:py-5 lg:shadow-xl lg:ring-1 lg:ring-rule">
-        <PageHeader title={PAGE.title} lede={PAGE.lede} compact />
+        <PageHeader title={page.title} lede={page.lede} compact />
       </div>
 
       {failed?.status === "error" && <ErrorState message={failed.error} onRetry={failed.retry} />}
-      {!failed && !ready && <Loading label="Loading walking areas" />}
+      {!failed && !ready && <Loading label={a.loading} />}
 
       {ready && stats.status === "ready" && summary.status === "ready" && iso.status === "ready" && (
         <>
           <section
-            aria-label="Access map"
+            aria-label={a.mapLabel}
             className="relative h-[62vh] min-h-[380px] overflow-hidden rounded-card bg-soft ring-1 ring-rule lg:absolute lg:inset-4 lg:h-auto"
           >
             {mapError ? (
               <div className="p-6">
-                <ErrorState message={`The map could not be drawn: ${mapError}`} />
+                <ErrorState message={t.common.mapError(mapError)} />
               </div>
             ) : (
               <BaseMap
@@ -202,20 +196,20 @@ export function AccessPage() {
           >
             <Segmented<Mode>
               tone="panel"
-              legend="Show"
+              legend={a.show}
               value={mode}
               onChange={setMode}
               options={[
-                { value: "station", label: "One station" },
-                { value: "coverage", label: "Coverage" },
+                { value: "station", label: a.oneStation },
+                { value: "coverage", label: a.coverage },
               ]}
             />
             <Segmented<AccessFilter>
               tone="panel"
-              legend="Stations"
+              legend={a.stations}
               value={filter}
               onChange={setFilter}
-              options={FILTERS}
+              options={FILTERS.map((value) => ({ value, label: a.filters[value] }))}
             />
             {mode === "coverage" && (
               <label className="flex cursor-pointer items-center gap-2 text-[14px]">
@@ -225,15 +219,15 @@ export function AccessPage() {
                   onChange={(e) => setShowOverlap(e.target.checked)}
                   className="size-4 accent-[var(--metro-green)]"
                 />
-                Show overlap
+                {a.showOverlap}
               </label>
             )}
             <label className="flex items-center gap-2 text-[14px]">
-              <span className="text-[13px] text-panel-muted">Find a station</span>
+              <span className="text-[13px] text-panel-muted">{a.findStation}</span>
               <input
                 list="access-stations"
                 onChange={(e) => pickStation(e.target.value)}
-                placeholder="e.g. Poblado"
+                placeholder={a.findPlaceholder}
                 className="w-40 rounded-full bg-white/10 px-3 py-1.5 text-[14px] text-panel-ink ring-1 ring-white/15 placeholder:text-panel-muted"
               />
               <datalist id="access-stations">
@@ -243,13 +237,13 @@ export function AccessPage() {
               </datalist>
             </label>
             <span className="flex items-center gap-2 text-[13px] text-panel-muted">
-              Click anywhere on the map to check the walk.
-              <InfoTip tone="panel" placement="above" label="how walking areas were computed" text={METHOD} />
+              {a.clickHint}
+              <InfoTip tone="panel" placement="above" label={a.methodLabel} text={a.method} />
             </span>
           </div>
 
           <aside
-            aria-label="Details"
+            aria-label={a.details}
             className="flex flex-col gap-3 rounded-card bg-soft p-5 ring-1 ring-rule lg:absolute lg:top-8 lg:right-8 lg:bottom-8 lg:z-10 lg:w-[420px] lg:overflow-hidden lg:shadow-xl"
           >
             {point && <PointResult point={point} result={walk} onClear={() => setPoint(null)} />}
@@ -267,12 +261,9 @@ export function AccessPage() {
                 />
               ) : (
                 <div className="space-y-2 text-[15px] text-ink-muted">
-                  <h2 className="text-[20px] font-semibold text-ink">Pick a station</h2>
-                  <p>
-                    Click a station on the map, or use Find a station, to see how far you can walk from it in 5, 10 and
-                    15 minutes.
-                  </p>
-                  <p>Switch to Coverage to see the walking time to the nearest station across the city.</p>
+                  <h2 className="text-[20px] font-semibold text-ink">{a.pickTitle}</h2>
+                  <p>{a.pickBody1}</p>
+                  <p>{a.pickBody2}</p>
                 </div>
               )}
             </div>

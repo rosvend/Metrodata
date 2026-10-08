@@ -21,7 +21,8 @@
     "ui:shots": "node scripts/ui/screenshots.mjs",
     "format": "prettier --write src scripts/ui",
     "osm:boundaries": "uv run python -m scripts.metro.boundaries",
-    "perf": "node scripts/ui/perf-check.mjs"
+    "perf": "node scripts/ui/perf-check.mjs",
+    "deploy": "vercel build --prod && vercel deploy --prebuilt --prod"
   },
   "dependencies": {
     "@deck.gl/core": "^9.4.0",

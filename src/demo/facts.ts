@@ -1,5 +1,14 @@
 import type { AccessSummary, IsochroneStats, KpiReport, SpikesJson } from "../data/types";
 
+// Driver is a key (translated in the UI); holiday names come in both languages
+export interface Extreme {
+  date: string;
+  value: number;
+  driver: string;
+  holiday: string | null;
+  holiday_es: string | null;
+}
+
 export interface DemoFacts {
   lineAShare: number;
   lineAWeekday: number;
@@ -11,8 +20,8 @@ export interface DemoFacts {
   systemPeakShare: number;
   cablePeakHour: number;
   arviPeakToAverage: number;
-  topSpike: { date: string; value: number; label: string };
-  topDip: { date: string; value: number; label: string };
+  topSpike: Extreme;
+  topDip: Extreme;
   growth2026: number;
   growth2025: number;
   pobladoArea15: number;
@@ -23,7 +32,7 @@ export interface DemoFacts {
 
 const YEAR = "2026";
 
-function extreme(spikes: SpikesJson, sign: 1 | -1) {
+function extreme(spikes: SpikesJson, sign: 1 | -1): Extreme {
   let best = -1;
   spikes.spike_index.forEach((v, i) => {
     if (v === null) return;
@@ -33,7 +42,9 @@ function extreme(spikes: SpikesJson, sign: 1 | -1) {
   return {
     date: spikes.dates[best] ?? "",
     value: spikes.spike_index[best] ?? 0,
-    label: spikes.driver_label[best] ?? "",
+    driver: spikes.driver[best] ?? "none",
+    holiday: spikes.holiday[best] ?? null,
+    holiday_es: spikes.holiday_es[best] ?? null,
   };
 }
 

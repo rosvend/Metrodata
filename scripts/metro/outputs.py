@@ -2,6 +2,7 @@ import pandas as pd
 
 from scripts.metro import kpis
 from scripts.metro.config import CORE_LINES, HOUR_COLS, HOURS, LINE_ORDER, SPIKE_MIN_COMPARABLES, SPIKE_WINDOW_DAYS
+from scripts.metro.daytype import holiday_name
 from scripts.metro.drivers import driver
 from scripts.metro.spikes import expected_profiles, spike_table
 
@@ -36,6 +37,7 @@ def daily_totals(df: pd.DataFrame) -> dict:
         "dates": wide.index.tolist(),
         "day_type": meta["day_type"].tolist(),
         "holiday": meta["holiday"].tolist(),
+        "holiday_es": [holiday_name(d, "es") for d in wide.index],
         "excluded": meta["excluded"].astype(bool).tolist(),
         "system": wide.sum(axis=1).astype(int).tolist(),
         "lines": {ln: [None if pd.isna(v) else int(v) for v in wide[ln]] for ln in LINE_ORDER},
@@ -208,6 +210,7 @@ def spikes(df: pd.DataFrame) -> dict:
         "dates": t.index.tolist(),
         "day_type": d["day_type"].tolist(),
         "holiday": meta.loc[t.index, "holiday"].tolist(),
+        "holiday_es": [holiday_name(d, "es") for d in t.index],
         "actual": t["actual"].tolist(),
         "expected": [None if pd.isna(v) else _r(v) for v in t["expected"]],
         "n_comparables": t["n_comparables"].tolist(),

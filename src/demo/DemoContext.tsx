@@ -2,13 +2,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import type { AccessSummary, IsochroneStats, KpiReport, SpikesJson } from "../data/types";
 import { loadJson } from "../data/load";
-import { demoFacts } from "./facts";
-import { type DemoStep, demoSteps } from "./steps";
+import { useLang, useT } from "../i18n/lang";
+import { type DemoFacts, demoFacts } from "./facts";
+import { demoSteps } from "./steps";
 import { DemoCtx } from "./useDemo";
 
 export function DemoProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const [steps, setSteps] = useState<DemoStep[]>([]);
+  const t = useT();
+  const { lang } = useLang();
+  const [facts, setFacts] = useState<DemoFacts | null>(null);
+  // Steps are rebuilt from the facts, so switching language mid-tour re-narrates it
+  const steps = useMemo(() => (facts ? demoSteps(facts, t, lang) : []), [facts, t, lang]);
   const [index, setIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,14 +48,14 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       loadJson<IsochroneStats>("isochrone_stats.json"),
     ]).then(
       ([k, s, a, i]) => {
-        const built = demoSteps(demoFacts(k, s, a, i));
-        setSteps(built);
+        const f = demoFacts(k, s, a, i);
+        setFacts(f);
         setIndex(0);
-        navigate(built[0]?.url ?? "/");
+        navigate(demoSteps(f, t, lang)[0]?.url ?? "/");
       },
       (e: unknown) => setError(e instanceof Error ? e.message : String(e)),
     );
-  }, [navigate]);
+  }, [navigate, t, lang]);
 
   const stop = useCallback(() => setIndex(null), []);
 

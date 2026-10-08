@@ -1,12 +1,12 @@
 import { motion } from "motion/react";
 import type { LineKpis } from "../data/types";
-import { formatInt, formatPercent } from "../lib/format";
-import { KPI_TEXT } from "../lib/kpiText";
+import { useT } from "../i18n/lang";
+import { formatDecimal, formatInt, formatPercent } from "../lib/format";
 import { MODE_LABELS } from "../lib/lines";
 import { InfoTip } from "../ui/InfoTip";
+import { LineBadge } from "./LineBadge";
 import { hourBand } from "./metrics";
 import type { FlowLine } from "./model";
-import { LineBadge } from "./LineBadge";
 import { ProfileChart } from "./ProfileChart";
 
 interface Props {
@@ -36,13 +36,15 @@ function Row({ label, value, tip }: { label: string; value: string; tip?: string
 const pad = (h: number) => `${String(h).padStart(2, "0")}:00`;
 
 export function LinePanel({ line, kpis, hour, year, coverage, dayLabel, daySingular, theme, onClose }: Props) {
+  const t = useT();
+  const p = t.flow.panel;
   return (
     <motion.aside
       initial={{ opacity: 0, x: 16 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 16 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
-      aria-label={`Line ${line.info.badge} details`}
+      aria-label={p.details(line.info.badge)}
       className="flex max-h-full flex-col overflow-y-auto rounded-card bg-surface p-5 shadow-2xl ring-1 ring-rule"
     >
       <div className="flex items-start justify-between gap-3">
@@ -51,7 +53,7 @@ export function LinePanel({ line, kpis, hour, year, coverage, dayLabel, daySingu
           <div className="leading-tight">
             <h2 className="text-[19px] font-semibold tracking-[-0.01em]">{line.info.name}</h2>
             <p className="text-[13px] text-ink-muted">
-              {MODE_LABELS[line.info.mode]}, {line.km.toFixed(1)} km{line.indicative ? " (indicative)" : ""}
+              {MODE_LABELS[line.info.mode]}, {formatDecimal(line.km, 1)} km{line.indicative ? p.indicative : ""}
             </p>
           </div>
         </div>
@@ -59,72 +61,56 @@ export function LinePanel({ line, kpis, hour, year, coverage, dayLabel, daySingu
           type="button"
           onClick={onClose}
           className="rounded-full px-3 py-1 text-[14px] ring-1 ring-ink/70 hover:bg-soft"
-          aria-label="Close line details"
+          aria-label={p.closeDetails}
         >
-          Close
+          {t.common.close}
         </button>
       </div>
 
       <section className="mt-4">
-        <h3 className="text-[14px] font-semibold">
-          Average hourly boardings, {dayLabel.toLowerCase()} {year}
-        </h3>
-        <p className="text-[12px] text-ink-faint">
-          {year} data covers {coverage}. Marker: {hourBand(hour)}.
-        </p>
+        <h3 className="text-[14px] font-semibold">{p.profileTitle(dayLabel.toLowerCase(), year)}</h3>
+        <p className="text-[12px] text-ink-faint">{p.coverageNote(year, coverage, hourBand(hour))}</p>
         <ProfileChart
           values={line.values}
           hour={hour}
           color={line.info.color}
           theme={theme}
-          label={`Hourly boardings profile for line ${line.info.badge}`}
+          label={p.profileLabel(line.info.badge)}
+          yLabel={p.yAxis}
         />
-        <p className="text-[14px]">
-          <span className="font-semibold tabular-nums">{formatInt(line.daily)}</span> boardings on an average{" "}
-          {daySingular}.
-        </p>
+        <p className="text-[14px]">{p.daily(formatInt(line.daily), daySingular)}</p>
       </section>
 
       {kpis && (
         <section className="mt-4">
-          <h3 className="text-[14px] font-semibold">Weekday indicators, {year}</h3>
+          <h3 className="text-[14px] font-semibold">{p.indicatorsTitle(year)}</h3>
           <dl className="mt-1">
             <Row
-              label="Weekday boardings"
+              label={p.weekdayBoardings}
               value={formatInt(kpis.avg_weekday_boardings)}
-              tip={KPI_TEXT.avg_weekday_boardings}
+              tip={t.kpi.avg_weekday_boardings}
             />
-            <Row label="Share of all lines" value={formatPercent(kpis.line_share)} tip={KPI_TEXT.line_share} />
+            <Row label={p.share} value={formatPercent(kpis.line_share)} tip={t.kpi.line_share} />
             <Row
-              label="Peak hour"
+              label={p.peakHour}
               value={`${pad(kpis.peak_hour_weekday.hour)} (${formatPercent(kpis.peak_hour_weekday.share)})`}
-              tip={KPI_TEXT.peak_hour}
+              tip={t.kpi.peak_hour}
             />
             <Row
-              label="Peak ÷ average hour"
-              value={kpis.peak_to_average_ratio.toFixed(2)}
-              tip={KPI_TEXT.peak_to_average}
+              label={p.peakToAverage}
+              value={formatDecimal(kpis.peak_to_average_ratio, 2)}
+              tip={t.kpi.peak_to_average}
             />
             <Row
-              label="Peak-hour boardings per km"
+              label={p.loadPerKm}
               value={`${formatInt(kpis.peak_hour_load_per_km)}${kpis.length_indicative ? "*" : ""}`}
-              tip={KPI_TEXT.load_per_km}
+              tip={t.kpi.load_per_km}
             />
-            <Row
-              label="Saturation index (proxy)"
-              value={kpis.saturation_index.toFixed(3)}
-              tip={KPI_TEXT.saturation_index}
-            />
-            <Row
-              label="Saturday ÷ weekday"
-              value={formatPercent(kpis.weekend_ratio.saturday)}
-              tip={KPI_TEXT.weekend_ratio}
-            />
-            <Row label="Sunday & holiday ÷ weekday" value={formatPercent(kpis.weekend_ratio.sunday_holiday)} />
+            <Row label={p.saturation} value={formatDecimal(kpis.saturation_index, 3)} tip={t.kpi.saturation_index} />
+            <Row label={p.saturday} value={formatPercent(kpis.weekend_ratio.saturday)} tip={t.kpi.weekend_ratio} />
+            <Row label={p.sunday} value={formatPercent(kpis.weekend_ratio.sunday_holiday)} />
           </dl>
-          {kpis.length_indicative && (
-            <p className="mt-2 text-[12px] text-ink-faint">* Line length is indicative for bus corridors.</p>
-          )}
+          {kpis.length_indicative && <p className="mt-2 text-[12px] text-ink-faint">{p.indicativeNote}</p>}
         </section>
       )}
     </motion.aside>

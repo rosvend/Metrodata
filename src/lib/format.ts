@@ -1,29 +1,41 @@
-const intFmt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+// Locale for all number and date formatting; set by the language provider before rendering
+let locale = "en-US";
 
-export const formatInt = (n: number): string => intFmt.format(n);
+export const setFormatLocale = (next: string): void => {
+  locale = next;
+};
+
+const number = (digits: number) =>
+  new Intl.NumberFormat(locale, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+
+export const formatInt = (n: number): string => number(0).format(n);
+
+export const formatDecimal = (n: number, digits: number): string => number(digits).format(n);
 
 export function formatCompact(n: number): string {
   const abs = Math.abs(n);
-  if (abs >= 1e6) return `${(n / 1e6).toFixed(2)}M`;
-  if (abs >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
+  if (abs >= 1e6) return `${formatDecimal(n / 1e6, 2)}M`;
+  if (abs >= 1e3) return `${formatDecimal(n / 1e3, 1)}K`;
   return formatInt(n);
 }
 
+// Spanish typesets a non-breaking space before %
+const percentSign = () => (locale.startsWith("es") ? " %" : "%");
+
 export function formatPercent(share: number, { signed = false, digits = 1 } = {}): string {
-  const text = `${Math.abs(share * 100).toFixed(digits)}%`;
+  const text = `${formatDecimal(Math.abs(share * 100), digits)}${percentSign()}`;
   if (!signed) return share < 0 ? `−${text}` : text;
   return `${share < 0 ? "−" : "+"}${text}`;
 }
 
-const dateParts = new Intl.DateTimeFormat("en-GB", {
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  timeZone: "UTC",
-});
-
 export function formatDate(iso: string): string {
-  const parts = Object.fromEntries(dateParts.formatToParts(new Date(`${iso}T00:00:00Z`)).map((p) => [p.type, p.value]));
-  return `${parts.weekday} ${parts.day} ${parts.month} ${parts.year}`;
+  const parts = new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).formatToParts(new Date(`${iso}T00:00:00Z`));
+  const p = Object.fromEntries(parts.map((x) => [x.type, x.value]));
+  return `${p.weekday} ${p.day} ${p.month} ${p.year}`;
 }

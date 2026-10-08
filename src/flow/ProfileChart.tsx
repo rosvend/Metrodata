@@ -7,18 +7,19 @@ interface Props {
   hour: number;
   color: string;
   label: string;
+  yLabel: string;
   theme: string;
 }
 
 const HOURS = Array.from({ length: 20 }, (_, i) => i + 4);
 
 // Area chart of the mean hourly profile with the current hour marked
-export function ProfileChart({ values, hour, color, label, theme }: Props) {
+export function ProfileChart({ values, hour, color, label, yLabel, theme }: Props) {
   const data = HOURS.map((h, i) => ({ h, v: values[i] ?? 0 }));
   const current = data.find((d) => d.h === Math.floor(hour));
   return (
     <PlotFigure
-      deps={[values, Math.floor(hour), color, theme]}
+      deps={[values, Math.floor(hour), color, theme, yLabel]}
       render={() =>
         Plot.plot({
           width: 340,
@@ -34,7 +35,7 @@ export function ProfileChart({ values, hour, color, label, theme }: Props) {
             background: "transparent",
           },
           x: { domain: [4, 23], ticks: [4, 8, 12, 16, 20, 23], tickFormat: (h: number) => `${h}h`, label: null },
-          y: { grid: true, tickFormat: formatCompact, label: "boardings / hour", labelAnchor: "top" },
+          y: { grid: true, tickFormat: formatCompact, label: yLabel, labelAnchor: "top" },
           marks: [
             Plot.areaY(data, { x: "h", y: "v", fill: color, fillOpacity: 0.22, curve: "monotone-x" }),
             Plot.lineY(data, { x: "h", y: "v", stroke: color, strokeWidth: 2.2, curve: "monotone-x" }),

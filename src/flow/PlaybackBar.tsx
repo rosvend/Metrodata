@@ -1,5 +1,7 @@
 import { Segmented } from "../ui/Segmented";
-import { METRIC_LABELS, type Metric, hourBand } from "./metrics";
+import { useT } from "../i18n/lang";
+import { formatDecimal } from "../lib/format";
+import { type Metric, hourBand } from "./metrics";
 import { SPEEDS, type Speed } from "./playback";
 import type { Playback } from "./usePlayback";
 
@@ -14,14 +16,16 @@ interface Props {
 const TICKS = [4, 8, 12, 16, 20, 23];
 
 export function PlaybackBar({ playback, metric, onMetric, showFeeders, onFeeders }: Props) {
-  const { t, playing, speed, setT, setPlaying, setSpeed } = playback;
+  const { t: hour, playing, speed, setT, setPlaying, setSpeed } = playback;
+  const t = useT();
+  const metrics: Metric[] = ["boardings", "per_km", "share"];
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
       <div className="flex items-center gap-4">
         <button
           type="button"
           onClick={() => setPlaying(!playing)}
-          aria-label={playing ? "Pause the day" : "Play the day"}
+          aria-label={playing ? t.flow.pause : t.flow.play}
           className="grid size-12 shrink-0 place-items-center rounded-full bg-green text-metro-ink hover:brightness-95"
         >
           <svg viewBox="0 0 20 20" className="size-5" aria-hidden fill="currentColor">
@@ -29,20 +33,20 @@ export function PlaybackBar({ playback, metric, onMetric, showFeeders, onFeeders
           </svg>
         </button>
         <div aria-live="polite" className="min-w-[8.5rem]">
-          <div className="text-[12px] text-panel-muted">Hour of operation</div>
-          <div className="text-[22px] leading-tight font-semibold text-panel-ink">{hourBand(t)}</div>
+          <div className="text-[12px] text-panel-muted">{t.flow.hourOfOperation}</div>
+          <div className="text-[22px] leading-tight font-semibold text-panel-ink">{hourBand(hour)}</div>
         </div>
       </div>
 
       <label className="flex min-w-[220px] flex-1 flex-col gap-1">
-        <span className="sr-only">Hour of day</span>
+        <span className="sr-only">{t.flow.hourOfDay}</span>
         <input
           type="range"
           min={4}
           max={23.99}
           step={0.01}
-          value={t}
-          aria-valuetext={hourBand(t)}
+          value={hour}
+          aria-valuetext={hourBand(hour)}
           onChange={(e) => setT(Number(e.target.value))}
           className="w-full accent-[var(--metro-green)]"
         />
@@ -56,17 +60,17 @@ export function PlaybackBar({ playback, metric, onMetric, showFeeders, onFeeders
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
         <Segmented<Speed>
           tone="panel"
-          legend="Speed"
+          legend={t.flow.speed}
           value={speed}
           onChange={setSpeed}
-          options={SPEEDS.map((s) => ({ value: s, label: `${s}×` }))}
+          options={SPEEDS.map((s) => ({ value: s, label: `${formatDecimal(s, s % 1 ? 1 : 0)}×` }))}
         />
         <Segmented<Metric>
           tone="panel"
-          legend="Width shows"
+          legend={t.flow.widthShows}
           value={metric}
           onChange={onMetric}
-          options={(Object.keys(METRIC_LABELS) as Metric[]).map((m) => ({ value: m, label: METRIC_LABELS[m] }))}
+          options={metrics.map((m) => ({ value: m, label: t.flow.metrics[m] }))}
         />
         <label className="flex cursor-pointer items-center gap-2 text-[14px] text-panel-ink">
           <input
@@ -75,7 +79,7 @@ export function PlaybackBar({ playback, metric, onMetric, showFeeders, onFeeders
             onChange={(e) => onFeeders(e.target.checked)}
             className="size-4 accent-[var(--metro-green)]"
           />
-          Feeder bus routes
+          {t.flow.feeders}
         </label>
       </div>
     </div>

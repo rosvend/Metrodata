@@ -11,6 +11,8 @@ An interactive BI dashboard built on hourly boardings for the 12 lines of the Me
 
 A guided **Demo** (button in the top bar) walks through the four pages, with narration computed from the data.
 
+The interface is in **Spanish by default** with an **ES | EN** switch in the top bar. The choice is remembered per browser.
+
 ## Requirements
 - Node.js 20.19+ or 22.12+ (developed on 24)
 - [uv](https://docs.astral.sh/uv/) for Python 3.12 (the data pipeline)
@@ -70,6 +72,15 @@ npx vite preview     # serve dist/ on :4173
 - **Routing:** configure the host to serve `index.html` for unknown paths, because client-side routes like `/calendar` need it.
 - **Compression:** enable precompressed files if the host supports them (for example nginx `gzip_static`/`brotli_static`).
 
+## Deploying (Vercel)
+The data in `public/data/` is generated locally and not committed, so the site is **built on your machine and uploaded prebuilt**:
+```bash
+npx vercel login          # once; opens the browser
+npx vercel link           # once; creates or links the Vercel project
+npm run deploy            # vercel build --prod && vercel deploy --prebuilt --prod
+```
+`vercel.json` sets the Vite build, `dist/` output and the rewrite that serves `index.html` for client-side routes such as `/calendar`. The deployment URL is public by default.
+
 ## Data and honesty rules
 - **Units:** figures are **boardings**, not passengers. Someone changing lines is counted once per line.
 - **Granularity:** there is no station-level or origin–destination data. Maps show line-level volumes only.
@@ -88,6 +99,7 @@ npx vite preview     # serve dist/ on :4173
 | `docs/frontend.md` | app structure and design system |
 | `docs/flow-map.md`, `docs/peaks.md`, `docs/calendar.md`, `docs/access.md` | one per page |
 | `docs/polish.md` | performance, accessibility and demo mode |
+| `docs/i18n.md` | Spanish/English interface |
 
 ## Sources
 - Ridership, stations, lines and feeder routes: Metro de Medellín open data (`data/`)

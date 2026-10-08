@@ -1,5 +1,8 @@
 import { expect, it } from "vitest";
 import type { DemoFacts } from "./facts";
+import { en } from "../i18n/en";
+import { es } from "../i18n/es";
+import { setFormatLocale } from "../lib/format";
 import { demoSteps } from "./steps";
 
 const facts: DemoFacts = {
@@ -13,8 +16,8 @@ const facts: DemoFacts = {
   systemPeakShare: 0.1023,
   cablePeakHour: 5,
   arviPeakToAverage: 1.12,
-  topSpike: { date: "2024-12-22", value: 35.06, label: "Christmas lights" },
-  topDip: { date: "2026-06-21", value: -64.81, label: "Election day" },
+  topSpike: { date: "2024-12-22", value: 35.06, driver: "christmas", holiday: null, holiday_es: null },
+  topDip: { date: "2026-06-21", value: -64.81, driver: "election", holiday: null, holiday_es: null },
   growth2026: -0.0404,
   growth2025: 0.0222,
   pobladoArea15: 2.7,
@@ -24,7 +27,7 @@ const facts: DemoFacts = {
 };
 
 it("walks the four pages in order with data-driven captions", () => {
-  const steps = demoSteps(facts);
+  const steps = demoSteps(facts, en, "en");
   const pages = steps.map((s) => s.url.split("?")[0]);
   expect(pages[0]).toBe("/");
   expect(pages.at(-1)).toBe("/access");
@@ -39,6 +42,17 @@ it("walks the four pages in order with data-driven captions", () => {
 });
 
 it("labels every driver as a hypothesis", () => {
-  for (const s of demoSteps(facts).filter((s) => s.caption.includes("driver")))
+  for (const s of demoSteps(facts, en, "en").filter((s) => s.caption.includes("driver")))
     expect(s.caption).toContain("(hypothesis)");
+});
+
+it("narrates in Spanish with Colombian number formats", () => {
+  setFormatLocale("es-CO");
+  const steps = demoSteps(facts, es, "es");
+  setFormatLocale("en-US");
+  expect(steps[0]?.caption).toContain("64,9");
+  expect(steps[5]?.caption).toContain("dom 22 dic 2024");
+  expect(steps[5]?.caption).toContain("Alumbrados navideños");
+  expect(steps[6]?.caption).toContain("Día de elecciones");
+  expect(steps[9]?.caption).toContain("90 de 269");
 });

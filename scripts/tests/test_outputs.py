@@ -54,3 +54,11 @@ def test_spike_profiles_pair_actual_and_expected_hours():
     assert out["dates"] == ["2025-01-06", "2025-01-07"]
     assert len(out["actual"][0]) == 20
     assert out["expected"][0] is None
+
+
+def test_daily_totals_publish_spanish_holiday_names():
+    df = _df()
+    df.loc[df["date"] == "2025-01-06", "holiday"] = "Epiphany"
+    out = outputs.daily_totals(df)
+    assert out["holiday_es"][0] == "Día de los Reyes Magos"
+    assert out["holiday_es"][1] is None

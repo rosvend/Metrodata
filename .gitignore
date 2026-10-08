@@ -9,3 +9,4 @@ public/data/
 *.osm.pbf
 .env
 .env.*
+.vercel/

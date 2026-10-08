@@ -1,6 +1,7 @@
 import * as Plot from "@observablehq/plot";
 import { formatCompact, formatInt } from "../lib/format";
-import { DAY_TYPE_LABELS, type DayType } from "../lib/filters";
+import { useT } from "../i18n/lang";
+import type { DayType } from "../lib/filters";
 import { hourBand } from "../flow/metrics";
 import { PlotFigure } from "../ui/PlotFigure";
 import { useSize } from "../ui/useSize";
@@ -19,15 +20,16 @@ const COLORS: Record<DayType, string> = {
 };
 
 export function DayTypeLegend({ selected }: { selected: DayType }) {
+  const tr = useT();
   return (
-    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[13px]" aria-label="Legend">
+    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[13px]" aria-label={tr.peaks.legend}>
       {(Object.keys(COLORS) as DayType[]).map((t) => (
         <li
           key={t}
           className={`flex items-center gap-1.5 ${t === selected ? "font-semibold text-ink" : "text-ink-muted"}`}
         >
           <span aria-hidden className="h-[3px] w-4 rounded-full" style={{ background: COLORS[t] }} />
-          {DAY_TYPE_LABELS[t]}
+          {tr.filters.dayPlural[t]}
         </li>
       ))}
     </ul>
@@ -35,6 +37,7 @@ export function DayTypeLegend({ selected }: { selected: DayType }) {
 }
 
 export function SystemProfile({ byDayType, selected, theme }: Props) {
+  const tr = useT();
   const [ref, { width }] = useSize<HTMLDivElement>();
   const types = Object.keys(byDayType) as DayType[];
   const data = types.flatMap((t) => (byDayType[t] ?? []).map((v, i) => ({ t, h: i + 4, v })));
@@ -50,9 +53,9 @@ export function SystemProfile({ byDayType, selected, theme }: Props) {
               marginLeft: 44,
               marginBottom: 24,
               style: plotStyle,
-              ariaLabel: "System boardings per hour by day type",
+              ariaLabel: tr.peaks.profileLabel,
               x: { domain: [4, 23], ticks: [4, 8, 12, 16, 20], tickFormat: hourTick, label: null },
-              y: { grid: true, tickFormat: formatCompact, label: "Boardings per hour", labelAnchor: "top" },
+              y: { grid: true, tickFormat: formatCompact, label: tr.peaks.perHour, labelAnchor: "top" },
               marks: [
                 Plot.lineY(data, {
                   x: "h",
@@ -69,7 +72,7 @@ export function SystemProfile({ byDayType, selected, theme }: Props) {
                     x: "h",
                     y: "v",
                     title: (d: { t: DayType; h: number; v: number }) =>
-                      `${DAY_TYPE_LABELS[d.t]}, ${hourBand(d.h)}\n${formatInt(d.v)} boardings (average)`,
+                      tr.peaks.profileTip(tr.filters.dayPlural[d.t], hourBand(d.h), formatInt(d.v)),
                   }),
                 ),
               ],

@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { useT } from "../i18n/lang";
 
 // Small "i" button that reveals a definition on hover, focus or tap
 interface Props {
@@ -10,12 +11,13 @@ interface Props {
 
 export function InfoTip({ label, text, tone = "light", placement = "below" }: Props) {
   const id = useId();
+  const t = useT();
   const [open, setOpen] = useState(false);
   return (
     <span className="relative inline-flex align-middle">
       <button
         type="button"
-        aria-label={`What is ${label}?`}
+        aria-label={t.common.whatIs(label)}
         aria-describedby={open ? id : undefined}
         onClick={() => setOpen((o) => !o)}
         onMouseEnter={() => setOpen(true)}

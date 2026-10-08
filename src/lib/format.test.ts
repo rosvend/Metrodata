@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { formatCompact, formatDate, formatInt, formatPercent } from "./format";
+import { afterEach, describe, expect, it } from "vitest";
+import { formatCompact, formatDate, formatDecimal, formatInt, formatPercent, setFormatLocale } from "./format";
 
 describe("format", () => {
   it("formats integers with grouping", () => {
@@ -21,5 +21,18 @@ describe("format", () => {
 describe("formatDate", () => {
   it("formats ISO dates in UTC with the weekday", () => {
     expect(formatDate("2024-12-22")).toBe("Sun 22 Dec 2024");
+  });
+});
+
+describe("Spanish (Colombia) formatting", () => {
+  afterEach(() => setFormatLocale("en-US"));
+  it("uses dot grouping, comma decimals and Spanish dates", () => {
+    setFormatLocale("es-CO");
+    expect(formatInt(683405)).toBe("683.405");
+    expect(formatDecimal(1.056, 2)).toBe("1,06");
+    expect(formatCompact(76492)).toBe("76,5K");
+    expect(formatPercent(0.6488)).toBe("64,9 %");
+    expect(formatPercent(-0.0404, { signed: true })).toBe("−4,0 %");
+    expect(formatDate("2024-12-22")).toBe("dom 22 dic 2024");
   });
 });

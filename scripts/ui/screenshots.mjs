@@ -3,6 +3,7 @@ import { chromium } from "playwright";
 
 const base = process.argv[2] ?? "http://localhost:5173";
 const out = process.argv[3] ?? ".cache/shots";
+const lang = process.argv[4] ?? "es";
 const pages = ["/", "/peaks", "/calendar", "/access"];
 const viewports = { desktop: { width: 1440, height: 900 }, phone: { width: 390, height: 844 } };
 
@@ -11,6 +12,7 @@ const errors = [];
 for (const theme of ["light", "dark"]) {
   for (const [name, viewport] of Object.entries(viewports)) {
     const ctx = await browser.newContext({ viewport, colorScheme: theme });
+    await ctx.addInitScript((l) => localStorage.setItem("lang", l), lang);
     const page = await ctx.newPage();
     page.on("console", (m) => m.type() === "error" && errors.push(`${theme}/${name}: ${m.text()}`));
     page.on("pageerror", (e) => errors.push(`${theme}/${name}: ${e.message}`));
@@ -35,8 +37,12 @@ for (const theme of ["light", "dark"]) {
     await page.keyboard.press("Tab");
     await page.keyboard.press("Tab");
     await page.screenshot({ path: `${out}/focus-${name}-${theme}.png` });
-    await page.getByRole("button", { name: /^About/ }).click();
-    await page.getByText("Days a line did not run").waitFor();
+    await page
+      .locator("header button")
+      .filter({ hasText: /About|Datos|Sobre/ })
+      .first()
+      .click();
+    await page.locator("dialog[open] ul >> nth=1").locator("li").nth(3).waitFor();
     await page.waitForTimeout(600);
     await page.screenshot({ path: `${out}/about-${name}-${theme}.png` });
     await ctx.close();

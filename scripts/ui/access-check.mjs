@@ -10,6 +10,7 @@ const b = await chromium.launch({
 const errors = [];
 for (const theme of ["light", "dark"]) {
   const p = await b.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: theme });
+  await p.addInitScript((l) => localStorage.setItem("lang", l), "en");
   p.on("pageerror", (e) => errors.push(`${theme}: ${e.message}`));
   p.on("console", (m) => m.type() === "error" && errors.push(`${theme}: ${m.text()}`));
   await p.goto(`${base}/access?station=poblado`);

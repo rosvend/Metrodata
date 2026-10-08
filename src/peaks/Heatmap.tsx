@@ -1,6 +1,7 @@
 import * as Plot from "@observablehq/plot";
 import { formatCompact, formatInt, formatPercent } from "../lib/format";
 import { lineInfo } from "../lib/lines";
+import { useT } from "../i18n/lang";
 import { PlotFigure } from "../ui/PlotFigure";
 import { useSize } from "../ui/useSize";
 import { hourBand } from "../flow/metrics";
@@ -43,6 +44,7 @@ export function HeatLegend({ cells, mode }: { cells: Cell[]; mode: HeatMode }) {
 }
 
 export function Heatmap({ cells, mode, lines, theme }: Props) {
+  const t = useT();
   const [ref, { width }] = useSize<HTMLDivElement>();
   const badge = (id: string) => lineInfo(id).badge;
   return (
@@ -58,7 +60,7 @@ export function Heatmap({ cells, mode, lines, theme }: Props) {
               marginTop: 6,
               marginBottom: 24,
               style: plotStyle,
-              ariaLabel: `Heatmap of ${mode === "share" ? "share of daily boardings" : "boardings"} by line and hour`,
+              ariaLabel: t.peaks.heatLabel(mode === "share"),
               x: { type: "band", tickFormat: hourTick, tickSize: 0, label: null },
               y: { domain: lines.map(badge), tickSize: 0, label: null },
               color: colorScale(mode),
@@ -70,8 +72,8 @@ export function Heatmap({ cells, mode, lines, theme }: Props) {
                   inset: 0.6,
                   rx: 3,
                   title: (d: Cell) =>
-                    `Line ${badge(d.line)}, ${hourBand(d.hour)}\n${formatInt(d.raw)} boardings` +
-                    (mode === "share" ? `\n${formatPercent(d.value)} of the line's day` : ""),
+                    t.peaks.heatTip(badge(d.line), hourBand(d.hour), formatInt(d.raw)) +
+                    (mode === "share" ? t.peaks.heatTipShare(formatPercent(d.value)) : ""),
                   tip: true,
                 }),
               ],

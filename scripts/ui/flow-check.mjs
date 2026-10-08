@@ -10,6 +10,7 @@ const browser = await chromium.launch({
 const errors = [];
 for (const theme of ["light", "dark"]) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: theme });
+  await page.addInitScript((l) => localStorage.setItem("lang", l), "en");
   page.on("console", (m) => m.type() === "error" && errors.push(`${theme}: ${m.text()}`));
   page.on("pageerror", (e) => errors.push(`${theme}: ${e.message}`));
   await page.goto(base + "/?year=2026&day=weekday");
@@ -62,6 +63,7 @@ for (const theme of ["light", "dark"]) {
   await page.close();
 }
 const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
+await phone.addInitScript((l) => localStorage.setItem("lang", l), "en");
 await phone.goto(base + "/");
 await phone.locator("canvas").first().waitFor();
 await phone.waitForTimeout(3000);
