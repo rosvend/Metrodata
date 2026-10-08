@@ -54,6 +54,7 @@ def main() -> None:
     write_json(OUT_DIR / "profiles.json", outputs.profiles(df))
     write_json(OUT_DIR / "peaks.json", outputs.peak_distributions(df))
     write_json(OUT_DIR / "spikes.json", spikes)
+    write_json(OUT_DIR / "spike_profiles.json", outputs.spike_profiles(df))
     write_geojson(OUT_DIR / "lines.geojson", lines)
     write_geojson(OUT_DIR / "stations.geojson", stations)
     write_geojson(OUT_DIR / "feeders.geojson", prepare_feeders(gpd.read_file(FEEDERS_FILE)))

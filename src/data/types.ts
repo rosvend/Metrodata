@@ -56,6 +56,8 @@ export interface LineKpis {
 export interface KpiReport {
   by_year: Record<string, { months: number[]; system: Omit<LineKpis, "line_share">; lines: Record<string, LineKpis> }>;
   day_type_peaks: Record<string, Partial<Record<DayTypeKey, DayTypePeaks>>>;
+  monthly: Record<string, MonthlyEntry>;
+  like_for_like_growth: Record<string, { vs: number; system: number; lines: Record<string, number> }>;
 }
 
 export type LonLat = [number, number];
@@ -124,4 +126,42 @@ export interface DayTypePeaks {
 export interface PeaksJson {
   day_type: "weekday";
   lines: Record<string, { dates: string[]; peak: number[]; hour: number[] }>;
+}
+
+export interface SpikesJson {
+  lines_used: string[];
+  window_days: number;
+  min_comparables: number;
+  dates: string[];
+  day_type: DayTypeKey[];
+  holiday: (string | null)[];
+  actual: number[];
+  expected: (number | null)[];
+  n_comparables: number[];
+  spike_index: (number | null)[];
+  driver: string[];
+  driver_label: string[];
+}
+
+export interface SpikeProfiles {
+  hours: number[];
+  lines_used: string[];
+  dates: string[];
+  actual: number[][];
+  expected: (number[] | null)[];
+}
+
+export interface DailyTotals {
+  dates: string[];
+  day_type: DayTypeKey[];
+  holiday: (string | null)[];
+  excluded: boolean[];
+  system: number[];
+  lines: Record<string, (number | null)[]>;
+}
+
+export interface MonthlyEntry {
+  days: number;
+  system: number;
+  lines: Record<string, number>;
 }

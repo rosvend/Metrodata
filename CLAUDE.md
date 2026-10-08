@@ -94,7 +94,8 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 - Phase 3 (shell + design system): done. See `docs/frontend.md`.
 - Phase 4 (flow map): done. See `docs/flow-map.md`.
 - Phase 5 (peaks and bottlenecks): done. See `docs/peaks.md`.
-- Next: Phase 6 (calendar).
+- Phase 6 (calendar and spikes): done. See `docs/calendar.md`. Feria de las Flores dates are external and need verifying.
+- Next: Phase 7 (access map and isochrones).
 - **Layout rule (user, 2026-10-08):** each page fits one 1440×900 view without scrolling on desktop. `npm run ui:shots` reports any overflow.
 - **FPS:** headless measurements are noisy (23–56 fps on the same code). Tuning is deferred to Phase 8.
 - Repo: github.com/rosvend/Metrodata (private), branch `main`.

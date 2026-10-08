@@ -2,7 +2,8 @@ import pandas as pd
 
 from scripts.metro import kpis
 from scripts.metro.config import CORE_LINES, HOUR_COLS, HOURS, LINE_ORDER, SPIKE_MIN_COMPARABLES, SPIKE_WINDOW_DAYS
-from scripts.metro.spikes import spike_table
+from scripts.metro.drivers import driver
+from scripts.metro.spikes import expected_profiles, spike_table
 
 DAY_TYPES = ["weekday", "saturday", "sunday_holiday"]
 
@@ -211,4 +212,19 @@ def spikes(df: pd.DataFrame) -> dict:
         "expected": [None if pd.isna(v) else _r(v) for v in t["expected"]],
         "n_comparables": t["n_comparables"].tolist(),
         "spike_index": [None if pd.isna(v) else _r(v, 2) for v in t["spike_index"]],
+        "driver": [driver(dd, h)[0] for dd, h in zip(t.index, meta.loc[t.index, "holiday"], strict=True)],
+        "driver_label": [driver(dd, h)[1] for dd, h in zip(t.index, meta.loc[t.index, "holiday"], strict=True)],
+    }
+
+
+def spike_profiles(df: pd.DataFrame) -> dict:
+    """Per date: core-line boardings by hour and the expected profile from the same comparable days."""
+    d = kpis.days(df[df["line"].isin(CORE_LINES)])
+    exp = expected_profiles(d)
+    return {
+        "hours": HOURS,
+        "lines_used": CORE_LINES,
+        "dates": d.index.tolist(),
+        "actual": d[HOUR_COLS].astype(int).to_numpy().tolist(),
+        "expected": [None if row.isna().any() else [_r(v) for v in row] for _, row in exp.iterrows()],
     }

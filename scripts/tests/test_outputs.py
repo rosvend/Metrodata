@@ -46,3 +46,11 @@ def test_day_type_peaks_reuse_kpi_functions():
     assert a["operating_days"] == 2
     assert out["2025"]["weekday"]["system"]["peak_hour"]["hour"] == 7
     assert "saturday" not in out["2025"]
+
+
+def test_spike_profiles_pair_actual_and_expected_hours():
+    df = _df()
+    out = outputs.spike_profiles(df)
+    assert out["dates"] == ["2025-01-06", "2025-01-07"]
+    assert len(out["actual"][0]) == 20
+    assert out["expected"][0] is None

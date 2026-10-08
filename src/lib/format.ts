@@ -14,3 +14,16 @@ export function formatPercent(share: number, { signed = false, digits = 1 } = {}
   if (!signed) return share < 0 ? `−${text}` : text;
   return `${share < 0 ? "−" : "+"}${text}`;
 }
+
+const dateParts = new Intl.DateTimeFormat("en-GB", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+export function formatDate(iso: string): string {
+  const parts = Object.fromEntries(dateParts.formatToParts(new Date(`${iso}T00:00:00Z`)).map((p) => [p.type, p.value]));
+  return `${parts.weekday} ${parts.day} ${parts.month} ${parts.year}`;
+}
