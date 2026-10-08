@@ -28,3 +28,69 @@ export interface DataQuality {
   spike_index: { insufficient_baseline_days: number };
   isochrones: { source: IsochroneSource; failures: { station_id: string; reason: string }[] } | string;
 }
+
+export type DayTypeKey = "weekday" | "saturday" | "sunday_holiday";
+
+export interface Profiles {
+  hours: number[];
+  periods: Record<string, Record<DayTypeKey, Record<string, number[]>>>;
+}
+
+export interface LineKpis {
+  operating_days: number;
+  avg_daily_boardings: number;
+  avg_weekday_boardings: number;
+  weekend_ratio: { saturday: number; sunday_holiday: number };
+  peak_hour_weekday: { hour: number; share: number };
+  peak_to_average_ratio: number;
+  daily_peak_median: number;
+  daily_peak_p95: number;
+  saturation_index: number;
+  peak_hour_load_per_km: number;
+  length_km: number;
+  length_indicative: boolean;
+  line_share: number;
+  peak_hour_record: { value: number; date: string; hour: number };
+}
+
+export interface KpiReport {
+  by_year: Record<string, { months: number[]; system: Omit<LineKpis, "line_share">; lines: Record<string, LineKpis> }>;
+}
+
+export type LonLat = [number, number];
+
+export interface Feature<G, P> {
+  type: "Feature";
+  geometry: G;
+  properties: P;
+}
+
+export interface FeatureCollection<G, P> {
+  type: "FeatureCollection";
+  features: Feature<G, P>[];
+}
+
+export type LineGeometry =
+  { type: "LineString"; coordinates: LonLat[] } | { type: "MultiLineString"; coordinates: LonLat[][] };
+
+export interface LineProps {
+  id: string;
+  name: string;
+  mode: string;
+  km: number;
+  has_ridership: boolean;
+  indicative: boolean;
+  estado: number[];
+}
+
+export interface StationProps {
+  id: string;
+  name: string;
+  lines: string[];
+  modes: string[];
+  tipo: number;
+}
+
+export type LinesGeo = FeatureCollection<LineGeometry, LineProps>;
+export type StationsGeo = FeatureCollection<{ type: "Point"; coordinates: LonLat }, StationProps>;
+export type FeedersGeo = FeatureCollection<LineGeometry, { ruta: string; linea: string }>;

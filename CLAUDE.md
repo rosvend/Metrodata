@@ -9,19 +9,25 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 - TDD. Keep the code small and modular (KISS/YAGNI). Code comments are one-liners; long-form docs go in `docs/`.
 - `data/` is read-only. `public/data/` is generated and gitignored. Don't commit large derived files unless asked.
 - No paid API keys. No `any` in TypeScript.
-- Design: the brief palette, Caladea headings and Overpass UI. Motion only answers actions. Don't use all-caps labels, middle-dot meta strings or decorative stripes. Check contrast (AA) for any new color pair.
+- **Design (user decision 2026-10-08):** replicate the official metrodemedellin.gov.co UI. This replaces the brief's teal palette and serif headings.
+  - Base: white, Outfit font, Metro green #65BC4B, dark panels #111716 with 24 px radius, and the logo at `public/Metro_Medellín_Logo.svg`.
+  - Lines use the OFFICIAL line colors (`src/lib/lines.ts`) everywhere, instead of per-mode colors.
+  - Green fills take near-black text (white on green fails AA).
+  - Keep the UI language in English until the user says otherwise.
+  - Check contrast (AA) for any new color pair.
 - Never show or compute station-level ridership, OD flows, onboard load or capacity.
 
 ## Stack
 - **Data:** Python 3.12 via `uv` (pandas, openpyxl, holidays, geopandas, pyproj, shapely, pytest, ruff) in `scripts/metro/`.
 - **Isochrones (Phase 2):** Valhalla in Docker, pedestrian costing, precomputed offline.
-- **Frontend:** React 19, Vite 8, TypeScript 6 (strict; TS 7 is not yet supported by typescript-eslint), react-router 8 (declarative), Tailwind 4, `motion` (Framer Motion), Vitest + Testing Library, ESLint + Prettier, and Playwright (system Chrome) for screenshots. Still to add: MapLibre GL, deck.gl and Observable Plot/visx. Basemap: OpenFreeMap/CARTO with no key.
+- **Frontend:** React 19, Vite 8, TypeScript 6 (strict; TS 7 is not yet supported by typescript-eslint), react-router 8 (declarative), Tailwind 4, `motion` (Framer Motion), MapLibre GL 6.11 + react-map-gl 8 + deck.gl 9.4 (`@deck.gl/maplibre` overlay), Observable Plot, Vitest + Testing Library, ESLint + Prettier, and Playwright (system Chrome) for screenshots. Basemap: CARTO Positron / Dark Matter, no key.
 
 ## Commands
 - `npm run data`: regenerates everything in `public/data/` (runs `uv run python -m scripts.metro.build`, about 3 s).
 - `npm run test:py`: pytest, including the real-data reference regression in `scripts/tests/test_reference.py`.
 - `npm run lint:py`: ruff lint + format check.
 - Frontend: `npm run dev`, `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run ui:shots` (screenshots plus overflow and console checks, with the dev server running).
+- `node scripts/ui/flow-check.mjs`: flow-map screenshots and a playback fps check on the real GPU. Headless Chrome needs `--use-angle=vulkan`, otherwise it renders on SwiftShader and fps is meaningless.
 - **Isochrones** (needs Docker): `npm run osm:extract` → `npm run valhalla:start` → `npm run isochrones` → `npm run valhalla:stop`. Full steps are in `docs/isochrones.md`. The OSM extract and tiles live in `.cache/` (gitignored).
 
 ## Pipeline layout (`scripts/metro/`)
@@ -51,10 +57,11 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 - `day_type` is weekday / saturday / sunday_holiday. A Colombian holiday from the `holidays` package counts as sunday_holiday.
 - Metrics are "boardings", never "passengers" or "riders". A transfer counts once per line.
 - Modes:
-  - Metro: A, B (color #0E3B43)
-  - Tranvía: T-A (mint #2FA38F)
-  - Metrocable: H, J, K, L, M, P (amber #F2A900)
-  - Metroplús: 1, 2, O (coral #E4572E)
+  - Metro: A, B
+  - Tranvía: T-A
+  - Metrocable: H, J, K, L, M, P
+  - Metroplús: 1, 2, O
+  - Colors are per line (official), see `src/lib/lines.ts`.
   - "La Aldea" (Cable Palmitas) has geometry but no ridership.
 - Line lengths come from Shape_Length in the lines GeoJSON (EPSG:9377, reprojected with pyproj always_xy). Lengths for 1, 2 and O are indicative. The O geometry is the planned Corredor de la 80 (estado 4/5).
 - Stations: 167 records → 92 unique, merged by same name (case-insensitive) within 300 m (50 are tipo 1). `lines[]` keeps membership.
@@ -84,7 +91,8 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 - Phase 1 (pipeline): done.
 - Phase 2 (isochrones): done. 50/50 tipo-1 stations, 0 failures.
 - Phase 3 (shell + design system): done. See `docs/frontend.md`.
-- Next: Phase 4 (flow map).
+- Phase 4 (flow map): done. See `docs/flow-map.md`.
+- Next: Phase 5 (peaks and bottlenecks).
 - Repo: github.com/rosvend/Metrodata (private), branch `main`.
 - The user has a Google Maps API key for a LATER comparison of isochrones. It must never be committed or shipped to the frontend; read it from an env var in an offline script only.
 

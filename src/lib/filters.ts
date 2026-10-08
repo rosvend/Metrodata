@@ -16,6 +16,12 @@ export const DAY_TYPE_LABELS: Record<DayType, string> = {
   sunday_holiday: "Sundays & holidays",
 };
 
+export const DAY_TYPE_SINGULAR: Record<DayType, string> = {
+  weekday: "weekday",
+  saturday: "Saturday",
+  sunday_holiday: "Sunday or holiday",
+};
+
 export interface Filters {
   year: Year;
   dayType: DayType;

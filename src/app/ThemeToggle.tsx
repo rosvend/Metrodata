@@ -8,9 +8,9 @@ export function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () =>
       onClick={onToggle}
       aria-label={`Switch to ${next} theme`}
       title={`Switch to ${next} theme`}
-      className="grid size-8 place-items-center rounded-full text-bar-ink ring-1 ring-white/15 hover:bg-white/10"
+      className="grid size-10 place-items-center rounded-full text-ink ring-1 ring-ink/70 hover:bg-soft"
     >
-      <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+      <svg viewBox="0 0 20 20" className="size-[18px]" aria-hidden>
         {theme === "dark" ? (
           <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
             <circle cx="10" cy="10" r="3.6" />

@@ -16,6 +16,14 @@ describe("useJson", () => {
     await waitFor(() => expect(result.current).toEqual({ status: "ready", data: { ok: true } }));
   });
 
+  it("stays idle without fetching when given no name", () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const { result } = renderHook(() => useJson<unknown>(null));
+    expect(result.current.status).toBe("idle");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("reports errors and can retry", async () => {
     const fetchMock = vi
       .fn()

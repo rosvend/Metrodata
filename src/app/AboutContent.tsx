@@ -53,7 +53,7 @@ export function AboutContent({ quality }: { quality: Resource<DataQuality> }) {
   return (
     <div className="space-y-7">
       <section>
-        <h3 className="font-serif text-xl font-bold">What you can and can't read here</h3>
+        <h3 className="text-xl font-semibold tracking-[-0.01em]">What you can and can't read here</h3>
         <ul className="mt-3 space-y-2.5 text-[15px] leading-relaxed text-ink-muted">
           {LIMITS.map((l) => (
             <li key={l}>{l}</li>
@@ -61,7 +61,7 @@ export function AboutContent({ quality }: { quality: Resource<DataQuality> }) {
         </ul>
       </section>
       <section>
-        <h3 className="font-serif text-xl font-bold">Data checks</h3>
+        <h3 className="text-xl font-semibold tracking-[-0.01em]">Data checks</h3>
         <div className="mt-3 text-ink-muted">
           {quality.status === "loading" && <Loading label="Loading data checks" />}
           {quality.status === "error" && <ErrorState message={quality.error} onRetry={quality.retry} />}

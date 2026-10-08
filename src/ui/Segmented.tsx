@@ -12,25 +12,44 @@ interface Props<T extends string | number> {
   options: Option<T>[];
   value: T;
   onChange: (value: T) => void;
+  tone?: "light" | "panel";
 }
 
+const TONES = {
+  light: {
+    track: "bg-soft ring-1 ring-rule",
+    thumb: "bg-ink",
+    on: "text-bg",
+    off: "text-ink-muted",
+    legend: "text-ink-faint",
+  },
+  panel: {
+    track: "bg-white/8 ring-1 ring-white/12",
+    thumb: "bg-green",
+    on: "text-metro-ink",
+    off: "text-panel-ink/85",
+    legend: "text-panel-muted",
+  },
+};
+
 // Native radios keep arrow-key navigation and screen-reader semantics for free
-export function Segmented<T extends string | number>({ legend, options, value, onChange }: Props<T>) {
+export function Segmented<T extends string | number>({ legend, options, value, onChange, tone = "light" }: Props<T>) {
   const name = useId();
+  const t = TONES[tone];
   return (
-    <fieldset className="flex items-center gap-2">
+    <fieldset className="flex flex-wrap items-center gap-x-2 gap-y-1">
       <legend className="sr-only">{legend}</legend>
-      <span aria-hidden className="text-[12px] text-bar-muted">
+      <span aria-hidden className={`text-[13px] ${t.legend}`}>
         {legend}
       </span>
-      <div className="flex rounded-full bg-white/8 p-0.5 ring-1 ring-white/12">
+      <div className={`flex rounded-full p-0.5 ${t.track}`}>
         {options.map((o) => {
           const checked = o.value === value;
           return (
             <label
               key={o.value}
               title={o.hint}
-              className="relative cursor-pointer rounded-full px-2.5 py-1 text-[13px] leading-none has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-[var(--focus)]"
+              className="relative cursor-pointer rounded-full px-3 py-1.5 text-[14px] leading-none has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-[var(--focus)]"
             >
               <input
                 type="radio"
@@ -42,11 +61,13 @@ export function Segmented<T extends string | number>({ legend, options, value, o
               {checked && (
                 <motion.span
                   layoutId={`seg-${name}`}
-                  className="absolute inset-0 rounded-full bg-bar-ink"
+                  className={`absolute inset-0 rounded-full ${t.thumb}`}
                   transition={{ type: "spring", stiffness: 500, damping: 38 }}
                 />
               )}
-              <span className={`relative ${checked ? "font-semibold text-bar" : "text-bar-ink/85"}`}>{o.label}</span>
+              <span className={`relative whitespace-nowrap ${checked ? `font-semibold ${t.on}` : t.off}`}>
+                {o.label}
+              </span>
             </label>
           );
         })}

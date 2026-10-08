@@ -28,8 +28,8 @@ for (const theme of ["light", "dark"]) {
     await page.keyboard.press("Tab");
     await page.keyboard.press("Tab");
     await page.screenshot({ path: `${out}/focus-${name}-${theme}.png` });
-    await page.getByRole("button", { name: "About the data" }).click();
-    await page.getByText("Data checks").waitFor();
+    await page.getByRole("button", { name: /^About/ }).click();
+    await page.getByText("Days a line did not run").waitFor();
     await page.waitForTimeout(600);
     await page.screenshot({ path: `${out}/about-${name}-${theme}.png` });
     await ctx.close();

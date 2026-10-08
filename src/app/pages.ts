@@ -31,3 +31,9 @@ export const PAGES: PageDef[] = [
     lede: "Walking areas around every station, computed on the street network.",
   },
 ];
+
+export function pageByPath(path: string): PageDef {
+  const page = PAGES.find((p) => p.path === path);
+  if (!page) throw new Error(`Unknown page ${path}`);
+  return page;
+}

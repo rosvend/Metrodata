@@ -14,14 +14,14 @@ export function Loading({ label = "Loading data" }: { label?: string }) {
 
 export function ErrorState({ message, onRetry }: ErrorProps) {
   return (
-    <div role="alert" className="rounded-lg border border-alert/40 bg-alert/5 px-4 py-3 text-sm">
+    <div role="alert" className="rounded-2xl border border-alert/40 bg-alert/5 px-4 py-3 text-sm">
       <p className="font-semibold text-alert">This view's data didn't load.</p>
       <p className="mt-1 text-ink-muted">{message}. Run `npm run data` if the files are missing, then retry.</p>
       {onRetry && (
         <button
           type="button"
           onClick={onRetry}
-          className="mt-3 rounded-full bg-ink px-3 py-1 text-[13px] font-semibold text-bg hover:bg-accent"
+          className="mt-3 rounded-full bg-green px-4 py-1.5 text-[14px] font-semibold text-metro-ink hover:brightness-95"
         >
           Retry
         </button>
@@ -31,5 +31,5 @@ export function ErrorState({ message, onRetry }: ErrorProps) {
 }
 
 export function Empty({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-lg border border-dashed border-rule px-5 py-8 text-ink-muted">{children}</div>;
+  return <div className="rounded-card bg-soft px-6 py-8 text-ink-muted">{children}</div>;
 }

@@ -1,8 +1,13 @@
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { AppShell } from "./app/AppShell";
 import { PAGES } from "./app/pages";
 import { NotFound } from "./pages/NotFound";
 import { PagePlaceholder } from "./pages/PagePlaceholder";
+import { Loading } from "./ui/Status";
+
+// Map pages pull in MapLibre and deck.gl, so they load on demand
+const FlowPage = lazy(() => import("./pages/FlowPage").then((m) => ({ default: m.FlowPage })));
 
 const PHASE_BY_PATH: Record<string, number> = { "/": 4, "/peaks": 5, "/calendar": 6, "/access": 7 };
 
@@ -11,7 +16,15 @@ export function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<AppShell />}>
-          {PAGES.map((p) => (
+          <Route
+            path="/"
+            element={
+              <Suspense fallback={<Loading label="Loading the map" />}>
+                <FlowPage />
+              </Suspense>
+            }
+          />
+          {PAGES.filter((p) => p.path !== "/").map((p) => (
             <Route
               key={p.path}
               path={p.path}

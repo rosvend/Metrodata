@@ -11,7 +11,8 @@
 ## Structure (`src/`)
 | Folder | Contents |
 |---|---|
-| `app/` | Shell: `AppShell`, `TopBar`, `LineNav` (page nav drawn as a metro line), `FilterControls`, `AboutDrawer`/`AboutContent`, `ThemeToggle`, hooks `useFilters` and `useTheme`, and the page list in `pages.ts` |
+| `app/` | Shell: `AppShell`, `TopBar`, `MainNav`, `FilterControls`, `AboutDrawer`/`AboutContent`, `ThemeToggle`, hooks `useFilters` and `useTheme`, `themeContext`, and the page list in `pages.ts` |
+| `flow/` | Flow map (Phase 4), see `docs/flow-map.md` |
 | `pages/` | One component per route. These are placeholders until phases 4–7 |
 | `ui/` | Shared pieces: `Segmented` (native radio group), `PageHeader`, and `Status` (`Loading`, `ErrorState` with retry, `Empty`) |
 | `lib/` | Pure, unit-tested helpers: `filters` (URL ⇄ filters), `theme`, `format` |
@@ -21,13 +22,16 @@
 Filters live in the URL query: `?year=2024|2025|2026&day=weekday|saturday|sunday_holiday`. Defaults are 2026 and weekday. Navigation keeps the query, so links and the calendar's deep links carry the selection. Invalid values fall back to the defaults.
 
 ## Design system
-- **Palette (brief):** deep teal #0E3B43 dominant (top bar, headings), teal #15756B interactive, mint #2FA38F, amber #F2A900 for the current selection and the station dot, coral #E4572E for alerts.
-- **Themes:** light page #F4F7F6, dark #061A1E. The top bar stays deep teal in both. Tokens are CSS variables in `src/index.css`, exposed to Tailwind via `@theme inline`.
-- **Mode colors:** Metro #0E3B43 (lifted to #7FBFC9 in dark mode so it stays visible), Tranvía #2FA38F, Metrocable #F2A900, Metroplús #E4572E.
-- **Type:** Caladea (metric-compatible with Cambria, self-hosted) for headings; Overpass (derived from Highway Gothic, a signage face) for the interface. Numerals are tabular.
-- **Focus:** amber on the teal bar (6:1) and in dark mode; deep teal on light page content, because amber on the light background is only 1.9:1.
-- **Contrast:** all text pairs are at or above 4.7:1 (WCAG AA).
-- **Motion:** used only in response to an action. The station dot glides between pages, the segmented selection slides, and the drawer slides in. `MotionConfig reducedMotion="user"` and a CSS media query respect `prefers-reduced-motion`.
+The look follows metrodemedellin.gov.co, as requested by the project owner (2026-10-08).
+- **Base:** white page, Outfit (300/400/600/700, self-hosted), near-black ink #111716, grey #494949.
+- **Brand:** Metro green #65BC4B. Green fills use near-black text (7.6:1); the site's white-on-green is only 2.4:1. Green as text on white uses #2F7A22 (5.4:1).
+- **Panels:** dark #111716 with 24 px radius, modelled on the site's "Estado de las líneas" bar. Used for the map controls and line legend.
+- **Shapes:** rounded 24 px cards, pill buttons and outline pills (like the site's "Menú").
+- **Header:** logo (`public/Metro_Medellín_Logo.svg`), plain text nav with a green underline on the current page.
+- **Line colors:** the official per-line colors, in `src/lib/lines.ts`. Badge text is white or near-black, whichever contrasts more. On the map, lines get a thin casing so yellow J and lime K read on the light basemap.
+- **Dark theme:** the official site has none; ours keeps the same structure on #0B100F.
+- **Contrast:** all text pairs meet WCAG AA.
+- **Motion:** used only in response to an action. The nav underline glides between pages, the segmented selection slides, and the drawer and line panel slide in. `MotionConfig reducedMotion="user"` and a CSS media query respect `prefers-reduced-motion`.
 - **About drawer:** a native `<dialog>`, which provides the focus trap, Escape to close and an inert background.
 
 ## Chart choices for later phases (from the datavizproject.com catalogue)

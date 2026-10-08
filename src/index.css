@@ -1,80 +1,68 @@
 @import "tailwindcss" source("./");
-@import "@fontsource/caladea/400.css";
-@import "@fontsource/caladea/700.css";
-@import "@fontsource/overpass/400.css";
-@import "@fontsource/overpass/600.css";
-@import "@fontsource/overpass/700.css";
+@import "@fontsource/outfit/300.css";
+@import "@fontsource/outfit/400.css";
+@import "@fontsource/outfit/600.css";
+@import "@fontsource/outfit/700.css";
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
-/* Brand palette from the brief; theme tokens below map onto it */
+/* Visual language of metrodemedellin.gov.co: white base, Outfit, Metro green, dark line panel */
 :root {
-  --deep-teal: #0e3b43;
-  --teal: #15756b;
-  --mint: #2fa38f;
-  --amber: #f2a900;
-  --coral: #e4572e;
+  --metro-green: #65bc4b;
+  --metro-ink: #111716;
 
-  --bg: #f4f7f6;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --ink: #0e3b43;
-  --ink-muted: #4a666b;
-  --rule: #d5e0de;
-  --accent: #15756b;
+  --soft: #eef4f3;
+  --ink: #111716;
+  --ink-muted: #494949;
+  --ink-faint: #696969;
+  --rule: #e1e7e6;
+  --accent: #2f7a22;
   --alert: #c2401c;
-  --bar: #0e3b43;
-  --bar-ink: #e8f1ef;
-  --bar-muted: #9cbcb8;
-
-  --focus: #0e3b43;
-
-  --mode-metro: #0e3b43;
-  --mode-tranvia: #2fa38f;
-  --mode-metrocable: #f2a900;
-  --mode-metroplus: #e4572e;
+  --panel: #111716;
+  --panel-ink: #f2f5f4;
+  --panel-muted: #a6b2b0;
+  --focus: #111716;
 
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --bg: #061a1e;
-  --surface: #0b262b;
-  --ink: #e6f0ee;
-  --ink-muted: #9bb5b3;
-  --rule: #1d3d43;
-  --accent: #46b8a6;
+  --bg: #0b100f;
+  --surface: #151c1b;
+  --soft: #1b2423;
+  --ink: #f2f5f4;
+  --ink-muted: #b9c4c2;
+  --ink-faint: #a6b2b0;
+  --rule: #26302f;
+  --accent: #74c95a;
   --alert: #f07650;
-  --bar: #0e3b43;
-  --bar-ink: #e8f1ef;
-  --bar-muted: #9cbcb8;
-
-  --focus: #f2a900;
-
-  /* Metro's deep teal is lifted so it stays visible on the dark background */
-  --mode-metro: #7fbfc9;
+  --panel: #1b2423;
+  --focus: #74c95a;
 
   color-scheme: dark;
 }
 
 @theme inline {
-  --font-serif: "Caladea", Cambria, Georgia, serif;
-  --font-sans: "Overpass", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Outfit", "Segoe UI", system-ui, sans-serif;
 
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-soft: var(--soft);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
   --color-rule: var(--rule);
   --color-accent: var(--accent);
   --color-alert: var(--alert);
-  --color-amber: var(--amber);
-  --color-bar: var(--bar);
-  --color-bar-ink: var(--bar-ink);
-  --color-bar-muted: var(--bar-muted);
-  --color-mode-metro: var(--mode-metro);
-  --color-mode-tranvia: var(--mode-tranvia);
-  --color-mode-metrocable: var(--mode-metrocable);
-  --color-mode-metroplus: var(--mode-metroplus);
+  --color-green: var(--metro-green);
+  --color-metro-ink: var(--metro-ink);
+  --color-panel: var(--panel);
+  --color-panel-ink: var(--panel-ink);
+  --color-panel-muted: var(--panel-muted);
+
+  --radius-card: 24px;
 }
 
 body {
@@ -90,9 +78,9 @@ body {
   outline-offset: 2px;
 }
 
-/* Amber focus reads on the deep-teal bar (6:1); light page content uses deep teal instead */
-[data-surface="bar"] {
-  --focus: var(--amber);
+/* Inside the dark line panel the focus ring switches to Metro green (7.6:1) */
+[data-surface="panel"] {
+  --focus: var(--metro-green);
 }
 
 @media (prefers-reduced-motion: reduce) {

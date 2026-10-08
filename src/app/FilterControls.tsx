@@ -7,7 +7,7 @@ const DAY_SHORT = { weekday: "Weekday", saturday: "Sat", sunday_holiday: "Sun & 
 export function FilterControls() {
   const [filters, setFilters] = useFilters();
   return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
       <Segmented
         legend="Year"
         value={filters.year}

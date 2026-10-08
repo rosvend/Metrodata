@@ -1,6 +1,6 @@
 import type { Theme } from "../lib/theme";
 import { FilterControls } from "./FilterControls";
-import { LineNav } from "./LineNav";
+import { MainNav } from "./MainNav";
 import { ThemeToggle } from "./ThemeToggle";
 
 interface Props {
@@ -11,19 +11,17 @@ interface Props {
 
 export function TopBar({ theme, onToggleTheme, onOpenAbout }: Props) {
   return (
-    <header
-      data-surface="bar"
-      className="z-20 bg-bar text-bar-ink shadow-[0_1px_0_rgba(255,255,255,0.06)] sm:sticky sm:top-0"
-    >
-      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-8 gap-y-3 px-4 py-3 sm:px-6">
-        <a href="/" className="order-1 font-serif text-[1.35rem] leading-none font-bold tracking-tight text-bar-ink">
-          Metrodata
-          <span className="mt-1 block font-sans text-[11px] font-normal tracking-normal text-bar-muted">
-            Metro de Medellín ridership
+    <header className="z-20 border-b border-rule bg-bg/95 backdrop-blur sm:sticky sm:top-0">
+      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-10 gap-y-3 px-4 py-3 sm:px-8">
+        <a href="/" className="order-1 flex items-center gap-3" aria-label="Metrodata home">
+          <img src="/Metro_Medellín_Logo.svg" alt="" className="size-12 rounded-[4px]" />
+          <span className="leading-tight">
+            <span className="block text-[20px] font-semibold tracking-[-0.01em] text-ink">Metrodata</span>
+            <span className="block text-[13px] font-light text-ink-muted">Ridership intelligence</span>
           </span>
         </a>
         <div className="order-3 w-full sm:w-auto lg:order-2">
-          <LineNav />
+          <MainNav />
         </div>
         <div className="order-4 w-full lg:order-3 lg:ml-auto lg:w-auto">
           <FilterControls />
@@ -32,9 +30,10 @@ export function TopBar({ theme, onToggleTheme, onOpenAbout }: Props) {
           <button
             type="button"
             onClick={onOpenAbout}
-            className="rounded-full px-3 py-1.5 text-[13px] font-semibold ring-1 ring-white/15 hover:bg-white/10"
+            className="rounded-full px-4 py-2 text-[15px] font-normal text-ink ring-1 ring-ink/70 hover:bg-soft"
           >
-            About the data
+            <span className="sm:hidden">About</span>
+            <span className="hidden sm:inline">About the data</span>
           </button>
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
         </div>
