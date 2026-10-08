@@ -265,7 +265,7 @@ export function AccessPage() {
                 <div className="space-y-2 text-[15px] text-ink-muted">
                   <h2 className="text-[20px] font-semibold text-ink">Pick a station</h2>
                   <p>
-                    Click a station on the map or type its name below to see how far you can walk from it in 5, 10 and
+                    Click a station on the map, or use Find a station, to see how far you can walk from it in 5, 10 and
                     15 minutes.
                   </p>
                   <p>Switch to Coverage to see the walking time to the nearest station across the city.</p>
