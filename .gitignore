@@ -10,3 +10,4 @@ public/data/
 .env
 .env.*
 .vercel/
+.vercel

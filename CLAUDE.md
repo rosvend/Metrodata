@@ -102,6 +102,7 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 - Phase 7 (access map): done. See `docs/access.md`.
 - Phase 8 (polish): done. See `docs/polish.md` and `README.md`. All eight phases are complete.
 - After phase 8: i18n (ES default, EN switch), Metro logo favicon, Vercel prebuilt deploy (`npm run deploy`).
+- **Production:** https://metrodata.vercel.app. Deploy ONLY with `npm run deploy` (local prebuilt build). Git auto-deploys are disabled in `vercel.json`, because remote builds lack `public/data/` and once broke production after a push.
 - **Layout rule (user, 2026-10-08):** each page fits one 1440×900 view without scrolling on desktop. `npm run ui:shots` reports any overflow.
 - **FPS:** measure only against the production build (`vite preview`), with Chrome on Vulkan. That gives 60 fps; dev-server numbers are meaningless.
 - Repo: github.com/rosvend/Metrodata (private), branch `main`.

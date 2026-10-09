@@ -79,7 +79,9 @@ npx vercel login          # once; opens the browser
 npx vercel link           # once; creates or links the Vercel project
 npm run deploy            # vercel build --prod && vercel deploy --prebuilt --prod
 ```
-`vercel.json` sets the Vite build, `dist/` output and the rewrite that serves `index.html` for client-side routes such as `/calendar`. The deployment URL is public by default.
+`vercel.json` sets the Vite build, the `dist/` output and the rewrite that serves `index.html` for client-side routes such as `/calendar`.
+
+It also **disables Git auto-deploys** (`"git": { "deploymentEnabled": false }`). A build on Vercel's servers has no `public/data/` (it is gitignored), so it would publish a site without data. Production is updated only with `npm run deploy`. The deployment URL is public by default.
 
 ## Data and honesty rules
 - **Units:** figures are **boardings**, not passengers. Someone changing lines is counted once per line.

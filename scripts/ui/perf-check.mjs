@@ -15,6 +15,7 @@ const b = await chromium.launch({
 for (const throttle of [1, 4]) {
   for (const [path, selector] of PAGES) {
     const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } });
+    await ctx.addInitScript((l) => localStorage.setItem("lang", l), "en");
     const page = await ctx.newPage();
     const cdp = await ctx.newCDPSession(page);
     await cdp.send("Emulation.setCPUThrottlingRate", { rate: throttle });
