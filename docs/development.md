@@ -1,0 +1,87 @@
+# Development
+
+Everything beyond the README's quick start: regenerating data, checks, building and deploying.
+
+## Regenerating the data
+```bash
+npm run data                       # ridership pipeline, KPIs, spikes, geodata, access summaries
+# walking areas and municipal boundaries (one-off, needs Docker and ~350 MB download)
+mkdir -p .cache/osm && curl -L -o .cache/osm/colombia-latest.osm.pbf \
+  https://download.geofabrik.de/south-america/colombia-latest.osm.pbf
+npm run osm:extract                # clip to the Valle de Aburrá
+npm run osm:boundaries             # municipalities, metro-area mask
+npm run valhalla:start             # local Valhalla routing engine
+npm run isochrones                 # 5/10/15-minute walking areas, then reruns npm run data
+npm run valhalla:stop
+```
+
+## Tests and checks
+```bash
+npm run test:py      # pytest: cleaning rules, KPIs and reference values (0.5% tolerance)
+npm test             # vitest: UI logic
+npm run lint         # eslint + prettier
+npm run lint:py      # ruff
+npm run typecheck
+```
+These browser checks use Playwright with the system Chrome, against a running server (dev on :5173 or preview on :4173):
+| Script | Checks |
+|---|---|
+| `npm run ui:shots` | screenshots of every page (light/dark, desktop/phone), console errors, horizontal overflow, single-view fit |
+| `node scripts/ui/flow-check.mjs` | flow map views, tooltip, playback frame rate |
+| `node scripts/ui/calendar-check.mjs` | deep links, ranked list, hover tips |
+| `node scripts/ui/access-check.mjs` | station view, click-anywhere, coverage, neighbourhoods |
+| `node scripts/ui/demo-check.mjs` | the whole guided demo |
+| `node scripts/ui/a11y-check.mjs` | axe-core WCAG 2.1 AA scan |
+| `node scripts/ui/keyboard-check.mjs` | tab order and focus rings |
+| `npm run perf` | cold-load time per page |
+| `node scripts/ui/readme-media.mjs` | regenerates the README screenshots and GIFs in `docs/img/` (production build on :4173) |
+
+`uv run python -m scripts.metro.colorcheck` checks the palettes for colour-vision deficiencies.
+
+## Production build
+```bash
+npm run build        # typecheck, vite build, then .gz/.br precompression of every text asset
+npx vite preview     # serve dist/ on :4173
+```
+`dist/` is a static site.
+- **Routing:** configure the host to serve `index.html` for unknown paths, because client-side routes like `/calendar` need it.
+- **Compression:** enable precompressed files if the host supports them (for example nginx `gzip_static`/`brotli_static`).
+
+## Deploying (Vercel)
+The data in `public/data/` is generated locally and not committed, so the site is **built on your machine and uploaded prebuilt**:
+```bash
+npx vercel login          # once; opens the browser
+npx vercel link           # once; creates or links the Vercel project
+npm run deploy            # vercel build --prod && vercel deploy --prebuilt --prod
+```
+`vercel.json` sets the Vite build, the `dist/` output and the rewrite that serves `index.html` for client-side routes such as `/calendar`.
+
+It also **disables Git auto-deploys** (`"git": { "deploymentEnabled": false }`). A build on Vercel's servers has no `public/data/` (it is gitignored), so it would publish a site without data. Production is updated only with `npm run deploy`. The deployment URL is public by default.
+
+## Data and honesty rules
+- **Units:** figures are **boardings**, not passengers. Someone changing lines is counted once per line.
+- **Granularity:** there is no station-level or origin–destination data. Maps show line-level volumes only.
+- **Year-over-year:** comparisons use **January–July only**, because October–December 2025 does not exist in the source.
+- **Bottleneck measures:** peak concentration, load per km and the saturation index are **proxies**. The data has no capacity, headways or onboard counts.
+- **Spike drivers:** explanations for spikes and dips are labelled **hypotheses**.
+- **Excluded and missing days:** 2024-02-20 (probable logging failure) is excluded from all measures; 2024-01-15 is missing in the source.
+
+## Documentation
+| File | Topic |
+|---|---|
+| `docs/pipeline.md` | data pipeline and output schemas |
+| `docs/kpis.md` | KPI definitions |
+| `docs/data-quality.md` | cleaning rules and limitations |
+| `docs/isochrones.md` | walking-area method and source |
+| `docs/frontend.md` | app structure and design system |
+| `docs/flow-map.md`, `docs/peaks.md`, `docs/calendar.md`, `docs/access.md` | one per page |
+| `docs/polish.md` | performance, accessibility and demo mode |
+| `docs/i18n.md` | Spanish/English interface |
+| `docs/presentacion.md` | presentation script (Spanish) |
+
+## Sources
+- Ridership, stations, lines and feeder routes: Metro de Medellín open data (`data/`)
+- Neighbourhoods and comunas: Medellín open data (`data/`)
+- Streets and municipal boundaries: © OpenStreetMap contributors (Geofabrik extract)
+- Basemap: © CARTO
+- Logo: Metro de Medellín

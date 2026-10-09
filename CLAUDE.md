@@ -29,7 +29,7 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 - `npm run test:py`: pytest, including the real-data reference regression in `scripts/tests/test_reference.py`.
 - `npm run lint:py`: ruff lint + format check.
 - Frontend: `npm run dev`, `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run ui:shots` (screenshots plus overflow and console checks, with the dev server running).
-- Final checks are listed in the README table: `a11y-check` (axe, must be 0), `keyboard-check`, `demo-check`, `perf`.
+- Final checks are listed in `docs/development.md`: `a11y-check` (axe, must be 0), `keyboard-check`, `demo-check`, `perf`.
 - Demo narration numbers come from `src/demo/facts.ts`. Never hard-code figures in captions.
 - `node scripts/ui/flow-check.mjs`: flow-map screenshots and a playback fps check on the real GPU. Headless Chrome needs `--use-angle=vulkan`, otherwise it renders on SwiftShader and fps is meaningless.
 - `npm run osm:boundaries`: municipal boundaries, metro-area mask and label points from the Colombia OSM file. Output: `municipalities.geojson` and `metro_mask.geojson`. Takes about 3 min; needs `.cache/osm`.
@@ -100,7 +100,7 @@ Priorities, in order: numeric accuracy, then visual polish and smooth animation,
 - Phase 5 (peaks and bottlenecks): done. See `docs/peaks.md`.
 - Phase 6 (calendar and spikes): done. See `docs/calendar.md`. Feria de las Flores dates are external and need verifying.
 - Phase 7 (access map): done. See `docs/access.md`.
-- Phase 8 (polish): done. See `docs/polish.md` and `README.md`. All eight phases are complete.
+- Phase 8 (polish): done. See `docs/polish.md` and `docs/development.md`. All eight phases are complete.
 - After phase 8: i18n (ES default, EN switch), Metro logo favicon, Vercel prebuilt deploy (`npm run deploy`).
 - **Production:** https://metrodata.vercel.app. Deploy ONLY with `npm run deploy` (local prebuilt build). Git auto-deploys are disabled in `vercel.json`, because remote builds lack `public/data/` and once broke production after a push.
 - **Layout rule (user, 2026-10-08):** each page fits one 1440×900 view without scrolling on desktop. `npm run ui:shots` reports any overflow.

@@ -1,111 +1,76 @@
-# Metrodata: Medellín Metro ridership intelligence
+<div align="center">
 
-An interactive BI dashboard built on hourly boardings for the 12 lines of the Metro de Medellín system (January 2024 to July 2026), with walking-access analysis around every main station.
+<img src="public/Metro_Medellín_Logo.svg" alt="Metro de Medellín logo" width="72"/>
 
-| Page | What it answers |
+# Metrodata
+
+**Ridership intelligence for the Metro de Medellín**
+
+Hourly boardings on 12 lines, January 2024 to July 2026 · Spanish and English
+
+[Live demo](https://metrodata.vercel.app) · [Overview](#overview) · [Requirements](#requirements) · [Quick start](#quick-start)
+
+<br/>
+
+<img src="docs/img/flow.gif" alt="Animated map of Medellín where each metro line's width grows and shrinks with its boardings over a weekday" width="100%"/>
+
+<sub>A weekday in motion: each line swells with its boardings, hour by hour.</sub>
+
+</div>
+
+---
+
+## Overview
+
+Metrodata is an interactive dashboard that turns the Metro's open ridership data into four answers:
+
+| Page | Question |
 |---|---|
-| **Flow** | Which lines carry the most boardings, hour by hour (animated map) |
-| **Peaks** | When and where the network strains: peak hours, sharpness, load per km, saturation (proxy) |
-| **Calendar** | Which days broke the pattern, with like-for-like (Jan–Jul) trends |
-| **Access** | 5/10/15-minute walking areas around each station, and city coverage |
+| **Flujo** | Which lines carry the most people, and when? |
+| **Picos** | When does the network strain, and which lines hit the same ceiling every day? |
+| **Calendario** | Which days broke the pattern, and why might that be? |
+| **Acceso** | How much of the city lives within a 15-minute walk of a station? |
 
-A guided **Demo** (button in the top bar) walks through the four pages, with narration computed from the data.
+A guided **Demo** button walks through the whole story. Figures are boardings (not passengers), and comparisons between years use January–July only.
 
-The interface is in **Spanish by default** with an **ES | EN** switch in the top bar. The choice is remembered per browser.
+<p align="center">
+  <img src="docs/img/peaks.png" alt="Peaks page with a line-by-hour heatmap, system profile, per-line peak table, load per km and saturation charts" width="100%"/>
+  <br/><sub>Peaks: rush hours, how sharp they are, and which lines run at their ceiling.</sub>
+</p>
+
+<p align="center">
+  <img src="docs/img/calendar.png" alt="Calendar heatmap of 2026 coloured by deviation from expected boardings, with ranked spikes and dips" width="100%"/>
+  <br/><sub>Calendar: every day compared with similar days; election Sundays stand out in red.</sub>
+</p>
+
+<p align="center">
+  <img src="docs/img/access.gif" alt="The map flies to Poblado station and draws its 5, 10 and 15-minute walking areas" width="100%"/>
+  <br/><sub>Access: real walking areas around each station, computed on the street network.</sub>
+</p>
+
+<p align="center">
+  <img src="docs/img/access.png" alt="Coverage map of all stations' walking areas with a list of fully covered neighbourhoods" width="100%"/>
+  <br/><sub>Coverage: 48% of Medellín's urban area is within 15 minutes on foot of a station.</sub>
+</p>
 
 ## Requirements
-- Node.js 20.19+ or 22.12+ (developed on 24)
-- [uv](https://docs.astral.sh/uv/) for Python 3.12 (the data pipeline)
-- Docker, only to recompute the walking areas
-- Internet access for the basemap tiles (CARTO, no API key)
+
+- Node.js 20.19+ (developed on 24)
+- [uv](https://docs.astral.sh/uv/) with Python 3.12
+- Docker, only to recompute the walking areas (see [`docs/isochrones.md`](docs/isochrones.md))
 
 ## Quick start
+
 ```bash
 npm install
 uv sync
-npm run data        # builds public/data/ from data/ (about 10 s)
-npm run dev         # http://localhost:5173
-```
-`public/data/` is generated and not committed. The walking-area files (`isochrones.geojson`, `isochrone_stats.json`, `access*`, `municipalities.geojson`, `metro_mask.geojson`) also need the OSM steps below. Without them, the flow map shows no city outlines and the Access page cannot load.
-
-## Regenerating the data
-```bash
-npm run data                       # ridership pipeline, KPIs, spikes, geodata, access summaries
-# walking areas and municipal boundaries (one-off, needs Docker and ~350 MB download)
-mkdir -p .cache/osm && curl -L -o .cache/osm/colombia-latest.osm.pbf \
-  https://download.geofabrik.de/south-america/colombia-latest.osm.pbf
-npm run osm:extract                # clip to the Valle de Aburrá
-npm run osm:boundaries             # municipalities, metro-area mask
-npm run valhalla:start             # local Valhalla routing engine
-npm run isochrones                 # 5/10/15-minute walking areas, then reruns npm run data
-npm run valhalla:stop
+npm run data    # build public/data/ from data/ (walking areas: see docs/development.md)
+npm run dev     # http://localhost:5173
 ```
 
-## Tests and checks
-```bash
-npm run test:py      # pytest: cleaning rules, KPIs and reference values (0.5% tolerance)
-npm test             # vitest: UI logic
-npm run lint         # eslint + prettier
-npm run lint:py      # ruff
-npm run typecheck
-```
-These browser checks use Playwright with the system Chrome, against a running server (dev on :5173 or preview on :4173):
-| Script | Checks |
-|---|---|
-| `npm run ui:shots` | screenshots of every page (light/dark, desktop/phone), console errors, horizontal overflow, single-view fit |
-| `node scripts/ui/flow-check.mjs` | flow map views, tooltip, playback frame rate |
-| `node scripts/ui/calendar-check.mjs` | deep links, ranked list, hover tips |
-| `node scripts/ui/access-check.mjs` | station view, click-anywhere, coverage, neighbourhoods |
-| `node scripts/ui/demo-check.mjs` | the whole guided demo |
-| `node scripts/ui/a11y-check.mjs` | axe-core WCAG 2.1 AA scan |
-| `node scripts/ui/keyboard-check.mjs` | tab order and focus rings |
-| `npm run perf` | cold-load time per page |
+Run the tests with `npm test` and `npm run test:py`. Publish with `npm run deploy`. Checks, data regeneration and deploy details are in [`docs/development.md`](docs/development.md).
 
-`uv run python -m scripts.metro.colorcheck` checks the palettes for colour-vision deficiencies.
-
-## Production build
-```bash
-npm run build        # typecheck, vite build, then .gz/.br precompression of every text asset
-npx vite preview     # serve dist/ on :4173
-```
-`dist/` is a static site.
-- **Routing:** configure the host to serve `index.html` for unknown paths, because client-side routes like `/calendar` need it.
-- **Compression:** enable precompressed files if the host supports them (for example nginx `gzip_static`/`brotli_static`).
-
-## Deploying (Vercel)
-The data in `public/data/` is generated locally and not committed, so the site is **built on your machine and uploaded prebuilt**:
-```bash
-npx vercel login          # once; opens the browser
-npx vercel link           # once; creates or links the Vercel project
-npm run deploy            # vercel build --prod && vercel deploy --prebuilt --prod
-```
-`vercel.json` sets the Vite build, the `dist/` output and the rewrite that serves `index.html` for client-side routes such as `/calendar`.
-
-It also **disables Git auto-deploys** (`"git": { "deploymentEnabled": false }`). A build on Vercel's servers has no `public/data/` (it is gitignored), so it would publish a site without data. Production is updated only with `npm run deploy`. The deployment URL is public by default.
-
-## Data and honesty rules
-- **Units:** figures are **boardings**, not passengers. Someone changing lines is counted once per line.
-- **Granularity:** there is no station-level or origin–destination data. Maps show line-level volumes only.
-- **Year-over-year:** comparisons use **January–July only**, because October–December 2025 does not exist in the source.
-- **Bottleneck measures:** peak concentration, load per km and the saturation index are **proxies**. The data has no capacity, headways or onboard counts.
-- **Spike drivers:** explanations for spikes and dips are labelled **hypotheses**.
-- **Excluded and missing days:** 2024-02-20 (probable logging failure) is excluded from all measures; 2024-01-15 is missing in the source.
-
-## Documentation
-| File | Topic |
-|---|---|
-| `docs/pipeline.md` | data pipeline and output schemas |
-| `docs/kpis.md` | KPI definitions |
-| `docs/data-quality.md` | cleaning rules and limitations |
-| `docs/isochrones.md` | walking-area method and source |
-| `docs/frontend.md` | app structure and design system |
-| `docs/flow-map.md`, `docs/peaks.md`, `docs/calendar.md`, `docs/access.md` | one per page |
-| `docs/polish.md` | performance, accessibility and demo mode |
-| `docs/i18n.md` | Spanish/English interface |
-
-## Sources
-- Ridership, stations, lines and feeder routes: Metro de Medellín open data (`data/`)
-- Neighbourhoods and comunas: Medellín open data (`data/`)
-- Streets and municipal boundaries: © OpenStreetMap contributors (Geofabrik extract)
-- Basemap: © CARTO
-- Logo: Metro de Medellín
+<div align="center">
+<br/>
+<sub>Data: Metro de Medellín and Alcaldía de Medellín open data · © OpenStreetMap contributors · © CARTO</sub>
+</div>
